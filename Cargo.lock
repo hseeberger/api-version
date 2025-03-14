@@ -28,7 +28,7 @@ dependencies = [
 
 [[package]]
 name = "api-version"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "array-macro",
  "axum",
