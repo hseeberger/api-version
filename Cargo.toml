@@ -1,7 +1,7 @@
 [package]
 name          = "api-version"
 version       = "0.1.0"
-edition       = "2021"
+edition       = "2024"
 description   = "Axum middleware to add a version prefix to request paths based on a set of versions and an optional `x-api-version` header"
 authors       = [ "Heiko Seeberger <git@heikoseeberger.de>" ]
 license       = "Apache-2.0"
