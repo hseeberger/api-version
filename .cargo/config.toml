@@ -1,5 +1,0 @@
-[registry]
-global-credential-providers = [ "cargo:token" ]
-
-[registries]
-scndcloud = { index = "sparse+https://crates.scndcloud.dev/api/v1/crates/" }

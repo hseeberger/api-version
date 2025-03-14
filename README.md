@@ -3,10 +3,10 @@
 [![license][license-badge]][license-url]
 [![build][build-badge]][build-url]
 
-[license-badge]: https://img.shields.io/github/license/scndcloud/api-version
-[license-url]: https://github.com/scndcloud/api-version/blob/main/LICENSE
-[build-badge]: https://img.shields.io/github/actions/workflow/status/scndcloud/api-version/ci.yaml
-[build-url]: https://github.com/scndcloud/api-version/actions/workflows/ci.yaml
+[license-badge]: https://img.shields.io/github/license/hseeberger/api-version
+[license-url]: https://github.com/hseeberger/api-version/blob/main/LICENSE
+[build-badge]: https://img.shields.io/github/actions/workflow/status/hseeberger/api-version/ci.yaml
+[build-url]: https://github.com/hseeberger/api-version/actions/workflows/ci.yaml
 
 Axum middleware to rewrite a request such that a version prefix is added to the path. This is based on a set of versions and an optional `"x-api-version"` custom HTTP header: if no such header is present, the highest version is used. Yet this only applies to requests the URIs of which pass a filter; others are not rewritten.
 
