@@ -104,6 +104,5 @@ async fn text(response: Response) -> String {
         })
         .await;
     assert!(text.is_ok());
-    let text = String::from_utf8(text.unwrap()).unwrap();
-    text
+    String::from_utf8(text.unwrap()).unwrap()
 }
