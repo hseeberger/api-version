@@ -23,11 +23,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.5.62
-        with:
-          registry: scndcloud
-          token: ${{ secrets.CRATES_TOKEN }}
+        uses: MarcoIeni/release-plz-action@v0.5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CARGO_REGISTRIES_SCNDCLOUD_TOKEN: ${{ secrets.CRATES_TOKEN }}
-          RUST_LOG: release_plz=debug,release_plz_core=debug,info
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}

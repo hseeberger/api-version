@@ -13,12 +13,12 @@ documentation = "https://github.com/scndcloud/api-version"
 
 [dependencies]
 array-macro = { version = "2.1" }
-axum        = { version = "0.7" }
-axum-extra  = { version = "0.9", features = [ "typed-header" ] }
+axum        = { version = "0.8" }
+axum-extra  = { version = "0.10", features = [ "typed-header" ] }
 futures     = { version = "0.3" }
-regex       = { version = "1.10" }
-thiserror   = { version = "1.0" }
-tower       = { version = "0.4" }
+regex       = { version = "1.11" }
+thiserror   = { version = "2.0" }
+tower       = { version = "0.5" }
 tracing     = { version = "0.1" }
 
 [dev-dependencies]

@@ -10,18 +10,15 @@ fmt-check toolchain="+nightly":
 	cargo {{toolchain}} fmt --check
 
 lint:
-	cargo clippy --no-deps -- -D warnings
+	cargo clippy --no-deps --tests -- -D warnings
 
 test:
 	cargo test
 
-coverage:
-	cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
-
 fix:
-	cargo fix --all-features --allow-dirty --allow-staged
+	cargo fix --allow-dirty --allow-staged
 
 doc toolchain="+nightly":
-	RUSTDOCFLAGS="-D warnings --cfg docsrs" cargo {{toolchain}} doc --no-deps --all-features
+	RUSTDOCFLAGS="-D warnings --cfg docsrs" cargo {{toolchain}} doc --no-deps
 
 all: check fmt lint test doc
