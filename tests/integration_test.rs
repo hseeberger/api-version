@@ -1,12 +1,12 @@
-use api_version::{api_version, ApiVersionFilter, X_API_VERSION};
+use api_version::{ApiVersionFilter, X_API_VERSION, api_version};
 use axum::{
+    Router,
     body::Body,
     http::{Request, StatusCode, Uri},
     response::{IntoResponse, Response},
     routing::get,
-    Router,
 };
-use futures::{future::ok, TryStreamExt};
+use futures::{TryStreamExt, future::ok};
 use std::{convert::Infallible, iter::Extend};
 use tower::{Layer, Service};
 

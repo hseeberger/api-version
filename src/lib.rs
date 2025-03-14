@@ -1,14 +1,14 @@
 pub use array_macro;
 
 use axum::{
-    extract::Request,
-    http::{uri::PathAndQuery, HeaderName, HeaderValue, StatusCode, Uri},
-    response::{IntoResponse, Response},
     RequestExt,
+    extract::Request,
+    http::{HeaderName, HeaderValue, StatusCode, Uri, uri::PathAndQuery},
+    response::{IntoResponse, Response},
 };
 use axum_extra::{
-    headers::{self, Header},
     TypedHeader,
+    headers::{self, Header},
 };
 use futures::future::BoxFuture;
 use regex::Regex;
