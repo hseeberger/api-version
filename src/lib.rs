@@ -14,7 +14,6 @@ use std::{
     convert::Infallible,
     error::Error as StdError,
     fmt::Debug,
-    future::Future,
     ops::Deref,
     sync::LazyLock,
     task::{Context, Poll},
@@ -112,11 +111,12 @@ impl<const N: usize> Deref for ApiVersions<N> {
 }
 
 /// Filter to determine which requests are rewritten.
+#[trait_variant::make(Send)]
 pub trait ApiVersionFilter: Clone + Send + 'static {
     type Error: std::error::Error;
 
     /// Requests are only rewritten, if the given URI passes, i.e. results in `true`.
-    fn filter(&self, uri: &Uri) -> impl Future<Output = Result<bool, Self::Error>> + Send;
+    async fn filter(&self, uri: &Uri) -> Result<bool, Self::Error>;
 }
 
 /// [ApiVersionFilter] making all requests be rewritten.

@@ -11,12 +11,13 @@ repository    = "https://github.com/hseeberger/api-version"
 documentation = "https://github.com/hseeberger/api-version"
 
 [dependencies]
-axum       = { version = "0.8" }
-axum-extra = { version = "0.10", features = [ "typed-header" ] }
-futures    = { version = "0.3" }
-regex      = { version = "1.11" }
-tower      = { version = "0.5" }
-tracing    = { version = "0.1" }
+axum          = { version = "0.8" }
+axum-extra    = { version = "0.10", features = [ "typed-header" ] }
+futures       = { version = "0.3" }
+regex         = { version = "1.11" }
+tower         = { version = "0.5" }
+tracing       = { version = "0.1" }
+trait-variant = { version = "0.1" }
 
 [dev-dependencies]
 assert_matches = { version = "1.5" }
