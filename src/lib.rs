@@ -17,7 +17,7 @@ use std::{
     error::Error as StdError,
     fmt::Debug,
     future::Future,
-    sync::OnceLock,
+    sync::LazyLock,
     task::{Context, Poll},
 };
 use thiserror::Error;
@@ -41,6 +41,9 @@ macro_rules! api_version {
         }
     };
 }
+
+static VERSION: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"^v(0|[1-9][0-9]?)$"#).expect("version regex is valid"));
 
 /// Axum middleware to rewrite a request such that a version prefix is added to the path. This is
 /// based on a set of versions and an optional `"x-api-version"` custom HTTP header: if no such
@@ -229,7 +232,7 @@ impl Header for XApiVersion {
         values
             .next()
             .and_then(|v| v.to_str().ok())
-            .and_then(|s| version().captures(s).and_then(|c| c.get(1)))
+            .and_then(|s| VERSION.captures(s).and_then(|c| c.get(1)))
             .and_then(|m| m.as_str().parse().ok())
             .map(XApiVersion)
             .ok_or_else(headers::Error::invalid)
@@ -239,12 +242,6 @@ impl Header for XApiVersion {
         // We do not yet need to encode this header.
         unimplemented!("not yet needed");
     }
-}
-
-// TODO Use `LazyLock` once stabilized!
-fn version() -> &'static Regex {
-    static VERSION: OnceLock<Regex> = OnceLock::new();
-    VERSION.get_or_init(|| Regex::new(r#"^v(0|[1-9][0-9]?)$"#).expect("version regex is valid"))
 }
 
 trait StdErrorExt
