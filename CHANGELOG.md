@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0](https://github.com/hseeberger/api-version/compare/v0.1.2...v0.2.0) - 2025-03-16
+
+### Added
+
+- change version range to 0u16..10_000 ([#13](https://github.com/hseeberger/api-version/pull/13))
+- add validated ApiVersions ([#11](https://github.com/hseeberger/api-version/pull/11))
+- remove declarative macro to create ApiVersionLayer ([#9](https://github.com/hseeberger/api-version/pull/9))
+
 ## [0.1.2](https://github.com/hseeberger/api-version/compare/v0.1.1...v0.1.2) - 2025-03-16
 
 ### Other
