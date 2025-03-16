@@ -24,24 +24,6 @@ use thiserror::Error;
 use tower::{Layer, Service};
 use tracing::{debug, error};
 
-/// Create an [ApiVersionLayer] correctly initialized with non-empty and strictly monotonically
-/// increasing versions in the given inclusive range.
-#[macro_export]
-macro_rules! api_version {
-    ($from:literal..=$to:literal) => {
-        {
-            $crate::api_version!($from..=$to, $crate::All)
-        }
-    };
-
-    ($from:literal..=$to:literal, $filter:expr) => {
-        {
-            let versions = $crate::array_macro::array![n => n as u16 + $from; $to - $from + 1];
-            $crate::ApiVersionLayer::new(versions, $filter).expect("versions are valid")
-        }
-    };
-}
-
 static VERSION: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"^v(0|[1-9][0-9]?)$"#).expect("version regex is valid"));
 
