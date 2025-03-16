@@ -1,5 +1,3 @@
-pub use array_macro;
-
 use axum::{
     RequestExt,
     extract::Request,
@@ -17,10 +15,10 @@ use std::{
     error::Error as StdError,
     fmt::Debug,
     future::Future,
+    ops::Deref,
     sync::LazyLock,
     task::{Context, Poll},
 };
-use thiserror::Error;
 use tower::{Layer, Service};
 use tracing::{debug, error};
 
@@ -28,32 +26,21 @@ static VERSION: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"^v(0|[1-9][0-9]?)$"#).expect("version regex is valid"));
 
 /// Axum middleware to rewrite a request such that a version prefix is added to the path. This is
-/// based on a set of versions and an optional `"x-api-version"` custom HTTP header: if no such
+/// based on a set of API versions and an optional `"x-api-version"` custom HTTP header: if no such
 /// header is present, the highest version is used. Yet this only applies to requests the URIs of
 /// which pass a filter; others are not rewritten.
 ///
 /// Paths must not start with a version prefix, e.g. `"/v0"`.
 #[derive(Clone)]
 pub struct ApiVersionLayer<const N: usize, F> {
-    versions: [u16; N],
+    versions: ApiVersions<N>,
     filter: F,
 }
 
 impl<const N: usize, F> ApiVersionLayer<N, F> {
-    /// Create a new [ApiVersionLayer].
-    ///
-    /// The given versions must not be empty and must be strictly monotonically increasing, e.g.
-    /// `[0, 1, 2]`.
-    pub fn new(versions: [u16; N], filter: F) -> Result<Self, NewApiVersionLayerError> {
-        if versions.is_empty() {
-            return Err(NewApiVersionLayerError::Empty);
-        }
-
-        if versions.as_slice().windows(2).any(|w| w[0] >= w[1]) {
-            return Err(NewApiVersionLayerError::NotIncreasing);
-        }
-
-        Ok(Self { versions, filter })
+    /// Create a new API version layer.
+    pub fn new(versions: ApiVersions<N>, filter: F) -> Self {
+        Self { versions, filter }
     }
 }
 
@@ -61,10 +48,10 @@ impl<const N: usize, S, F> Layer<S> for ApiVersionLayer<N, F>
 where
     F: ApiVersionFilter,
 {
-    type Service = ApiVersion<N, S, F>;
+    type Service = ApiVersionService<N, S, F>;
 
     fn layer(&self, inner: S) -> Self::Service {
-        ApiVersion {
+        ApiVersionService {
             inner,
             versions: self.versions,
             filter: self.filter.clone(),
@@ -72,7 +59,53 @@ where
     }
 }
 
-/// Determine which requests are rewritten.
+/// API versions.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ApiVersions<const N: usize>([u16; N]);
+
+impl<const N: usize> ApiVersions<N> {
+    /// Create API versions. The given numbers must not be empty and must be strictly monotonically
+    /// increasing; otherwise `new` fails to compile in const contexts or panics otherwise.
+    ///
+    /// # Examples
+    ///
+    /// Strictly monotonically versions `1` and `2` are valid:
+    ///
+    /// ```
+    /// # use api_version::ApiVersions;
+    /// const VERSIONS: ApiVersions<2> = ApiVersions::new([1, 2]);;
+    /// ```
+    ///
+    /// Empty versions or such that are not strictly monotonically increasing are invalid and fail
+    /// to compile in const contexts or panic otherwise.
+    ///
+    /// ```compile_fail
+    /// # use api_version::ApiVersions;
+    /// /// API versions must not be empty!
+    /// const VERSIONS: ApiVersions<0> = ApiVersions::new([]);
+    /// /// API versions must be strictly monotonically increasing!
+    /// const VERSIONS: ApiVersions<0> = ApiVersions::new([2, 1]);
+    /// ```
+    pub const fn new(versions: [u16; N]) -> Self {
+        assert!(!versions.is_empty(), "API versions must not be empty");
+        assert!(
+            is_monotonically_increasing(versions),
+            "API versions must be strictly monotonically increasing"
+        );
+
+        Self(versions)
+    }
+}
+
+impl<const N: usize> Deref for ApiVersions<N> {
+    type Target = [u16; N];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+/// Filter to determine which requests are rewritten.
 pub trait ApiVersionFilter: Clone + Send + 'static {
     type Error: std::error::Error;
 
@@ -92,25 +125,15 @@ impl ApiVersionFilter for All {
     }
 }
 
-/// Error creating an [ApiVersionLayer].
-#[derive(Debug, Error)]
-pub enum NewApiVersionLayerError {
-    #[error("versions must not be empty")]
-    Empty,
-
-    #[error("versions must be strictly monotonically increasing")]
-    NotIncreasing,
-}
-
 /// See [ApiVersionLayer].
 #[derive(Clone)]
-pub struct ApiVersion<const N: usize, S, F> {
+pub struct ApiVersionService<const N: usize, S, F> {
     inner: S,
-    versions: [u16; N],
+    versions: ApiVersions<N>,
     filter: F,
 }
 
-impl<const N: usize, S, F> Service<Request> for ApiVersion<N, S, F>
+impl<const N: usize, S, F> Service<Request> for ApiVersionService<N, S, F>
 where
     S: Service<Request, Response = Response> + Clone + Send + 'static,
     S::Future: Send + 'static,
@@ -146,7 +169,7 @@ where
                 Ok(pass_through) => pass_through,
 
                 Err(error) => {
-                    error!(error = error.as_chain(), "cannot apply filter");
+                    error!(error = chained_sources(error), "cannot apply filter");
                     return Ok(StatusCode::INTERNAL_SERVER_ERROR.into_response());
                 }
             };
@@ -226,22 +249,49 @@ impl Header for XApiVersion {
     }
 }
 
-trait StdErrorExt
+fn chained_sources<E>(error: E) -> String
 where
-    Self: StdError,
+    E: StdError,
 {
-    fn as_chain(&self) -> String {
-        let mut sources = vec![];
-        sources.push(self.to_string());
+    let mut sources = vec![];
+    sources.push(error.to_string());
 
-        let mut source = self.source();
-        while let Some(s) = source {
-            sources.push(s.to_string());
-            source = s.source();
-        }
-
-        sources.join(": ")
+    let mut source = error.source();
+    while let Some(s) = source {
+        sources.push(s.to_string());
+        source = s.source();
     }
+
+    sources.join(": ")
 }
 
-impl<T> StdErrorExt for T where T: StdError {}
+const fn is_monotonically_increasing<const N: usize>(versions: [u16; N]) -> bool {
+    if N < 2 {
+        return true;
+    }
+
+    let mut n = 1;
+    while n < N {
+        if versions[n - 1] >= versions[n] {
+            return false;
+        }
+        n += 1;
+    }
+
+    true
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::is_monotonically_increasing;
+
+    #[test]
+    fn test_is_monotonically_increasing() {
+        assert!(is_monotonically_increasing([]));
+        assert!(is_monotonically_increasing([0]));
+        assert!(is_monotonically_increasing([0, 1]));
+
+        assert!(!is_monotonically_increasing([0, 0]));
+        assert!(!is_monotonically_increasing([1, 0]));
+    }
+}
