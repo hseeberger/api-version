@@ -1,4 +1,4 @@
-use api_version::{ApiVersionFilter, X_API_VERSION, api_version};
+use api_version::{ApiVersionFilter, ApiVersionLayer, X_API_VERSION};
 use axum::{
     Router,
     body::Body,
@@ -18,7 +18,9 @@ async fn test() {
         .route("/v1/test", get(ok_1))
         .route("/foo", get(ok_foo));
 
-    let mut app = api_version!(0..=1, FooFilter).layer(app);
+    let mut app = ApiVersionLayer::new([0, 1], FooFilter)
+        .expect("API versions are valid")
+        .layer(app);
 
     // Verify that filter is working.
     let request = Request::builder().uri("/foo").body(Body::empty()).unwrap();
