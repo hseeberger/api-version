@@ -1,3 +1,5 @@
+//! Axum middleware to rewrite a request such that a version prefix is added to the path.
+
 use axum::{
     RequestExt,
     extract::Request,
@@ -30,7 +32,24 @@ static VERSION: LazyLock<Regex> =
 /// header is present, the highest version is used. Yet this only applies to requests the URIs of
 /// which pass a filter; others are not rewritten.
 ///
-/// Paths must not start with a version prefix, e.g. `"/v0"`.
+/// Notice that paths of a router wrapped with an `ApiVersionLayer` must not start with a version
+/// prefix, e.g. `"/v0"`, else a `200 BadRequest` is returned.
+///
+/// # Examples
+///
+/// The middleware needs to be applied to the "root" router:
+///
+/// ```
+/// let app = Router::new()
+///     .route("/", get(ok_0))
+///     .route("/v0/test", get(ok_0))
+///     .route("/v1/test", get(ok_1))
+///     .route("/foo", get(ok_foo));
+///
+/// const API_VERSIONS: ApiVersions<2> = ApiVersions::new([0, 1]);
+///
+/// let mut app = ApiVersionLayer::new(API_VERSIONS, FooFilter).layer(app);
+/// ```
 #[derive(Clone)]
 pub struct ApiVersionLayer<const N: usize, F> {
     versions: ApiVersions<N>,
@@ -59,13 +78,14 @@ where
     }
 }
 
-/// API versions.
+/// API versions; a validated newtype for a `u16` array.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ApiVersions<const N: usize>([u16; N]);
 
 impl<const N: usize> ApiVersions<N> {
-    /// Create API versions. The given numbers must not be empty and must be strictly monotonically
-    /// increasing; otherwise `new` fails to compile in const contexts or panics otherwise.
+    /// Create API versions. The given numbers must not be empty, must be strictly monotonically
+    /// increasing and less than `10_000`; otherwise `new` fails to compile in const contexts or
+    /// panics otherwise.
     ///
     /// # Examples
     ///
