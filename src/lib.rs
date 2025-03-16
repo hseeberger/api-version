@@ -23,7 +23,7 @@ use tower::{Layer, Service};
 use tracing::{debug, error};
 
 static VERSION: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"^v(0|[1-9][0-9]?)$"#).expect("version regex is valid"));
+    LazyLock::new(|| Regex::new(r#"^v(\d{1,4})$"#).expect("version regex is valid"));
 
 /// Axum middleware to rewrite a request such that a version prefix is added to the path. This is
 /// based on a set of API versions and an optional `"x-api-version"` custom HTTP header: if no such
@@ -85,12 +85,18 @@ impl<const N: usize> ApiVersions<N> {
     /// const VERSIONS: ApiVersions<0> = ApiVersions::new([]);
     /// /// API versions must be strictly monotonically increasing!
     /// const VERSIONS: ApiVersions<0> = ApiVersions::new([2, 1]);
+    /// /// API versions must be within 0u16..10_000!
+    /// const VERSIONS: ApiVersions<0> = ApiVersions::new([10_000]);
     /// ```
     pub const fn new(versions: [u16; N]) -> Self {
         assert!(!versions.is_empty(), "API versions must not be empty");
         assert!(
             is_monotonically_increasing(versions),
             "API versions must be strictly monotonically increasing"
+        );
+        assert!(
+            versions[N - 1] < 10_000,
+            "API versions must be within 0u16..10_000"
         );
 
         Self(versions)
@@ -220,7 +226,7 @@ where
 pub static X_API_VERSION: HeaderName = HeaderName::from_static("x-api-version");
 
 /// Custom HTTP header conveying the API version, which is expected to be a version designator
-/// starting with `'v'` followed by a number from 0..+99 without leading zero, e.g. `v0`.
+/// starting with `'v'` followed by a number within `0u16..10_000` without leading zero, e.g. `v0`.
 #[derive(Debug)]
 pub struct XApiVersion(u16);
 
@@ -283,7 +289,47 @@ const fn is_monotonically_increasing<const N: usize>(versions: [u16; N]) -> bool
 
 #[cfg(test)]
 mod tests {
-    use crate::is_monotonically_increasing;
+    use crate::{VERSION, is_monotonically_increasing};
+    use assert_matches::assert_matches;
+
+    #[test]
+    fn test_x_api_header() {
+        let version = VERSION
+            .captures("v0")
+            .and_then(|c| c.get(1))
+            .map(|m| m.as_str());
+        assert_matches!(version, Some("0"));
+
+        let version = VERSION
+            .captures("v1")
+            .and_then(|c| c.get(1))
+            .map(|m| m.as_str());
+        assert_matches!(version, Some("1"));
+
+        let version = VERSION
+            .captures("v99")
+            .and_then(|c| c.get(1))
+            .map(|m| m.as_str());
+        assert_matches!(version, Some("99"));
+
+        let version = VERSION
+            .captures("v9999")
+            .and_then(|c| c.get(1))
+            .map(|m| m.as_str());
+        assert_matches!(version, Some("9999"));
+
+        let version = VERSION
+            .captures("v10000")
+            .and_then(|c| c.get(1))
+            .map(|m| m.as_str());
+        assert_matches!(version, None);
+
+        let version = VERSION
+            .captures("vx")
+            .and_then(|c| c.get(1))
+            .map(|m| m.as_str());
+        assert_matches!(version, None);
+    }
 
     #[test]
     fn test_is_monotonically_increasing() {
