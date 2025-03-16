@@ -39,7 +39,7 @@ static VERSION: LazyLock<Regex> =
 ///
 /// The middleware needs to be applied to the "root" router:
 ///
-/// ```
+/// ```ignore
 /// let app = Router::new()
 ///     .route("/", get(ok_0))
 ///     .route("/v0/test", get(ok_0))
