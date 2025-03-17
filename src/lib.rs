@@ -1,4 +1,5 @@
-//! Axum middleware to rewrite a request such that a version prefix is added to the path.
+//! Axum middleware to rewrite a request such that a version prefix, e.g. `"/v0"`, is added to the
+//! path.
 
 use axum::{
     RequestExt,
@@ -31,8 +32,7 @@ static VERSION: LazyLock<Regex> =
 /// header is present, the highest version is used. Yet this only applies to requests the URIs of
 /// which pass a filter; others are not rewritten.
 ///
-/// Notice that paths of a router wrapped with an `ApiVersionLayer` must not start with a version
-/// prefix, e.g. `"/v0"`, else a `200 BadRequest` is returned.
+/// Notice that paths starting with a valid version prefix, e.g. `"/v0"`, are not rewritten.
 ///
 /// # Examples
 ///
@@ -135,8 +135,8 @@ impl<const N: usize> Deref for ApiVersions<N> {
 pub trait ApiVersionFilter: Clone + Send + 'static {
     type Error: std::error::Error;
 
-    /// Requests are only rewritten, if the given URI passes, i.e. results in `true`.
-    async fn filter(&self, uri: &Uri) -> Result<bool, Self::Error>;
+    /// Should a request with the given URI be rewritten.
+    async fn should_rewrite(&self, uri: &Uri) -> Result<bool, Self::Error>;
 }
 
 /// [ApiVersionFilter] making all requests be rewritten.
@@ -146,7 +146,7 @@ pub struct All;
 impl ApiVersionFilter for All {
     type Error = Infallible;
 
-    async fn filter(&self, _uri: &Uri) -> Result<bool, Self::Error> {
+    async fn should_rewrite(&self, _uri: &Uri) -> Result<bool, Self::Error> {
         Ok(true)
     }
 }
@@ -179,29 +179,29 @@ where
         let filter = self.filter.clone();
 
         Box::pin(async move {
-            // Do not allow the path to start with one of the valid version prefixes.
-            if versions
+            // Return without rewriting for paths starting with a valid version prefix.
+            let has_version_prefix = versions
                 .iter()
-                .any(|version| request.uri().path().starts_with(&format!("/v{version}")))
-            {
-                let response = (
-                    StatusCode::BAD_REQUEST,
-                    "path must not start with version prefix like '/v0'",
+                .any(|version| request.uri().path().starts_with(&format!("/v{version}/")));
+            if has_version_prefix {
+                debug!(
+                    uri = %request.uri(),
+                    "not rewriting the path, because starts with valid version prefix"
                 );
-                return Ok(response.into_response());
+                return inner.call(request).await;
             }
 
-            let pass_through = match filter.filter(request.uri()).await {
-                Ok(pass_through) => pass_through,
+            // Apply filter and possibly return without rewriting.
+            let should_rewrite = match filter.should_rewrite(request.uri()).await {
+                Ok(should_rewrite) => should_rewrite,
 
                 Err(error) => {
                     error!(error = chained_sources(error), "cannot apply filter");
                     return Ok(StatusCode::INTERNAL_SERVER_ERROR.into_response());
                 }
             };
-
-            if !pass_through {
-                debug!(uri = %request.uri(), "not rewriting the path");
+            if !should_rewrite {
+                debug!(uri = %request.uri(), "not rewriting the path, because URI filtered");
                 return inner.call(request).await;
             }
 
