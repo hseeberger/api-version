@@ -63,14 +63,22 @@ async fn test() {
     let response = app.call(request).await.unwrap();
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 
-    // Invalid path starting with existing version prefix.
+    // Valid version prefix (existing version).
     let request = Request::builder()
-        .uri("/v0x")
-        .header(&X_API_VERSION, "v2")
+        .uri("/v0/test")
         .body(Body::empty())
         .unwrap();
     let response = app.call(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(text(response).await, "0");
+
+    // Invalid version prefix (nonexistent version).
+    let request = Request::builder()
+        .uri("/v2/test")
+        .body(Body::empty())
+        .unwrap();
+    let response = app.call(request).await.unwrap();
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }
 
 #[derive(Clone)]
@@ -79,7 +87,7 @@ struct FooFilter;
 impl ApiVersionFilter for FooFilter {
     type Error = Infallible;
 
-    async fn filter(&self, uri: &Uri) -> Result<bool, Self::Error> {
+    async fn should_rewrite(&self, uri: &Uri) -> Result<bool, Self::Error> {
         Ok(!uri.path().starts_with("/foo"))
     }
 }
