@@ -8,9 +8,7 @@
 [build-badge]: https://img.shields.io/github/actions/workflow/status/hseeberger/api-version/ci.yaml
 [build-url]: https://github.com/hseeberger/api-version/actions/workflows/ci.yaml
 
-Axum middleware to rewrite a request such that a version prefix is added to the path. This is based on a set of versions and an optional `"x-api-version"` custom HTTP header: if no such header is present, the highest version is used. Yet this only applies to requests the URIs of which pass a filter; others are not rewritten.
-
-Paths must not start with a version prefix, e.g. `"/v0"`.
+Axum middleware to rewrite a request such that a version prefix is added to the path. This is based on a set of API versions and an optional `"x-api-version"` custom HTTP header: if no such header is present, the highest version is used. Yet this only applies to requests the URIs of which pass a filter; others are not rewritten. Also, paths starting with a valid/existing version prefix, e.g. `"/v0"`, are not rewritten.
 
 ## Example
 
