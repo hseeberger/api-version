@@ -15,17 +15,24 @@ Paths must not start with a version prefix, e.g. `"/v0"`.
 ## Example
 
 ```rust
-use api_version::api_version;
+struct ReadyFilter;
+
+impl ApiVersionFilter for ReadyFilter {
+    type Error = Infallible;
+
+    async fn should_rewrite(&self, uri: &Uri) -> Result<bool, Self::Error> {
+        Ok(uri.path() != "/")
+    }
+}
 
 let app = Router::new()
-    .route("/", get(ok_0))
+    .route("/", get(ready))
     .route("/v0/test", get(ok_0))
     .route("/v1/test", get(ok_1));
 
-/// Create an [ApiVersionLayer] correctly initialized with non-empty and strictly monotonically
-/// increasing versions in the given inclusive range as well as an [ApiVersionFilter] making all
-/// requests be rewritten.
-let app = api_version!(0..=1).layer(app);
+const API_VERSIONS: ApiVersions<2> = ApiVersions::new([0, 1]);
+
+let app = ApiVersionLayer::new(API_VERSIONS, ReadyFilter).layer(app);
 ```
 
 ## License ##

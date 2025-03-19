@@ -13,22 +13,21 @@ use tower::{Layer, Service};
 #[tokio::test]
 async fn test() {
     let app = Router::new()
-        .route("/", get(ok_0))
+        .route("/", get(ready))
         .route("/v0/test", get(ok_0))
-        .route("/v1/test", get(ok_1))
-        .route("/foo", get(ok_foo));
+        .route("/v1/test", get(ok_1));
 
     const API_VERSIONS: ApiVersions<2> = ApiVersions::new([0, 1]);
 
-    let mut app = ApiVersionLayer::new(API_VERSIONS, FooFilter).layer(app);
+    let mut app = ApiVersionLayer::new(API_VERSIONS, ReadyFilter).layer(app);
 
-    // Verify that filter is working.
-    let request = Request::builder().uri("/foo").body(Body::empty()).unwrap();
+    // Verify that the filter is working.
+    let request = Request::builder().uri("/").body(Body::empty()).unwrap();
     let response = app.call(request).await.unwrap();
     assert_eq!(response.status(), StatusCode::OK);
-    assert_eq!(text(response).await, "foo");
+    assert_eq!(text(response).await, "ready");
 
-    // No version.
+    // No version should return the highest version.
     let request = Request::builder().uri("/test").body(Body::empty()).unwrap();
     let response = app.call(request).await.unwrap();
     assert_eq!(response.status(), StatusCode::OK);
@@ -82,14 +81,18 @@ async fn test() {
 }
 
 #[derive(Clone)]
-struct FooFilter;
+struct ReadyFilter;
 
-impl ApiVersionFilter for FooFilter {
+impl ApiVersionFilter for ReadyFilter {
     type Error = Infallible;
 
     async fn should_rewrite(&self, uri: &Uri) -> Result<bool, Self::Error> {
-        Ok(!uri.path().starts_with("/foo"))
+        Ok(uri.path() != "/")
     }
+}
+
+async fn ready() -> impl IntoResponse {
+    "ready"
 }
 
 async fn ok_0() -> impl IntoResponse {
@@ -98,10 +101,6 @@ async fn ok_0() -> impl IntoResponse {
 
 async fn ok_1() -> impl IntoResponse {
     "1"
-}
-
-async fn ok_foo() -> impl IntoResponse {
-    "foo"
 }
 
 async fn text(response: Response) -> String {
