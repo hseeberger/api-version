@@ -20,6 +20,7 @@ tracing       = { version = "0.1" }
 trait-variant = { version = "0.1" }
 
 [dev-dependencies]
+anyhow         = { version = "1.0" }
 assert_matches = { version = "1.5" }
 futures        = { version = "0.3" }
-tokio          = { version = "1", features = [ "macros" ] }
+tokio          = { version = "1", features = [ "macros", "rt-multi-thread" ] }
