@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1](https://github.com/hseeberger/api-version/compare/v0.3.0...v0.3.1) - 2025-03-20
+
+### Other
+
+- add example ([#22](https://github.com/hseeberger/api-version/pull/22))
+- add docs badge
+- minor clarifications, more consistency
+- docs, Rust 1.85.1, better tests
+
 ## [0.3.0](https://github.com/hseeberger/api-version/compare/v0.2.0...v0.3.0) - 2025-03-17
 
 ### Added
