@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.3](https://github.com/hseeberger/api-version/compare/v0.3.2...v0.3.3) - 2025-10-03
+
+### Other
+
+- *(deps)* bump Rust to 1.90.0 ([#27](https://github.com/hseeberger/api-version/pull/27))
+
 ## [0.3.2](https://github.com/hseeberger/api-version/compare/v0.3.1...v0.3.2) - 2025-08-15
 
 ### Other
