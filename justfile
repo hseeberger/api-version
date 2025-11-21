@@ -1,24 +1,30 @@
 set shell := ["bash", "-uc"]
 
+rust_version := `grep channel rust-toolchain.toml | sed -r 's/channel = "(.*)"/\1/'`
+nightly := "nightly-2025-10-29"
+
 check:
 	cargo check --tests
 
-fmt toolchain="+nightly":
-	cargo {{toolchain}} fmt
+fmt:
+    cargo +{{nightly}} fmt
 
-fmt-check toolchain="+nightly":
-	cargo {{toolchain}} fmt --check
-
-lint:
-	cargo clippy --no-deps --tests -- -D warnings
-
-test:
-	cargo test
+fmt-check:
+    cargo +{{nightly}} fmt --check
 
 fix:
-	cargo fix --allow-dirty --allow-staged
+	cargo fix --tests --allow-dirty --allow-staged
 
-doc toolchain="+nightly":
-	RUSTDOCFLAGS="-D warnings --cfg docsrs" cargo {{toolchain}} doc --no-deps
+lint:
+	cargo clippy --tests --no-deps -- -D warnings
+
+lint-fix:
+	cargo clippy --tests --no-deps --allow-dirty --allow-staged --fix
+
+test:
+	cargo test --tests
+
+doc:
+	cargo doc --no-deps
 
 all: check fmt lint test doc
