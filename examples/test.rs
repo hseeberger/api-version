@@ -1,7 +1,6 @@
 use anyhow::Context;
-use api_version::{ApiVersionFilter, ApiVersionLayer, ApiVersions};
-use axum::{Router, ServiceExt, http::Uri, response::IntoResponse, routing::get};
-use std::convert::Infallible;
+use api_version::{ApiVersionLayer, ApiVersions};
+use axum::{Router, ServiceExt, response::IntoResponse, routing::get};
 use tokio::net::TcpListener;
 use tower::Layer;
 
@@ -10,10 +9,10 @@ const API_VERSIONS: ApiVersions<2> = ApiVersions::new([0, 1]);
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let app = Router::new()
-        .route("/", get(ready))
-        .route("/v0/test", get(ok_0))
-        .route("/v1/test", get(ok_1));
-    let app = ApiVersionLayer::new(API_VERSIONS, ReadyFilter).layer(app);
+        .route("/ready", get(ready))
+        .route("/api/v0/test", get(ok_0))
+        .route("/api/v1/test", get(ok_1));
+    let app = ApiVersionLayer::new("/", API_VERSIONS).layer(app);
 
     let listener = TcpListener::bind(("0.0.0.0", 8080))
         .await
@@ -32,15 +31,4 @@ async fn ok_0() -> impl IntoResponse {
 
 async fn ok_1() -> impl IntoResponse {
     "1"
-}
-
-#[derive(Clone)]
-struct ReadyFilter;
-
-impl ApiVersionFilter for ReadyFilter {
-    type Error = Infallible;
-
-    async fn should_rewrite(&self, uri: &Uri) -> Result<bool, Self::Error> {
-        Ok(uri.path() != "/")
-    }
 }

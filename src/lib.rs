@@ -14,15 +14,13 @@ use axum_extra::{
 use futures::future::BoxFuture;
 use regex::Regex;
 use std::{
-    convert::Infallible,
-    error::Error as StdError,
     fmt::Debug,
     ops::Deref,
     sync::LazyLock,
     task::{Context, Poll},
 };
 use tower::{Layer, Service};
-use tracing::{debug, error};
+use tracing::debug;
 
 static VERSION: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"^v(\d{1,4})$"#).expect("version regex is valid"));
@@ -49,29 +47,33 @@ static VERSION: LazyLock<Regex> =
 /// let mut app = ApiVersionLayer::new(API_VERSIONS, FooFilter).layer(app);
 /// ```
 #[derive(Clone)]
-pub struct ApiVersionLayer<const N: usize, F> {
+pub struct ApiVersionLayer<const N: usize> {
+    base_path: String,
     versions: ApiVersions<N>,
-    filter: F,
 }
 
-impl<const N: usize, F> ApiVersionLayer<N, F> {
+impl<const N: usize> ApiVersionLayer<N> {
     /// Create a new API version layer.
-    pub fn new(versions: ApiVersions<N>, filter: F) -> Self {
-        Self { versions, filter }
+    pub fn new(base_path: impl AsRef<str>, versions: ApiVersions<N>) -> Self {
+        let base_path = base_path.as_ref().trim_end_matches('/').to_string();
+        assert!(base_path.starts_with('/'), "base path must start with '/'");
+        assert!(!base_path.len() > 1, "base path must not be empty");
+
+        Self {
+            base_path,
+            versions,
+        }
     }
 }
 
-impl<const N: usize, S, F> Layer<S> for ApiVersionLayer<N, F>
-where
-    F: ApiVersionFilter,
-{
-    type Service = ApiVersionService<N, S, F>;
+impl<const N: usize, S> Layer<S> for ApiVersionLayer<N> {
+    type Service = ApiVersionService<N, S>;
 
     fn layer(&self, inner: S) -> Self::Service {
         ApiVersionService {
             inner,
+            base_path: self.base_path.clone(),
             versions: self.versions,
-            filter: self.filter.clone(),
         }
     }
 }
@@ -129,40 +131,18 @@ impl<const N: usize> Deref for ApiVersions<N> {
     }
 }
 
-/// Filter to determine which requests are rewritten.
-#[trait_variant::make(Send)]
-pub trait ApiVersionFilter: Clone + Send + 'static {
-    type Error: std::error::Error;
-
-    /// Should a request with the given URI be rewritten.
-    async fn should_rewrite(&self, uri: &Uri) -> Result<bool, Self::Error>;
-}
-
-/// [ApiVersionFilter] making all requests be rewritten.
-#[derive(Clone, Copy)]
-pub struct All;
-
-impl ApiVersionFilter for All {
-    type Error = Infallible;
-
-    async fn should_rewrite(&self, _uri: &Uri) -> Result<bool, Self::Error> {
-        Ok(true)
-    }
-}
-
 /// See [ApiVersionLayer].
 #[derive(Clone)]
-pub struct ApiVersionService<const N: usize, S, F> {
+pub struct ApiVersionService<const N: usize, S> {
     inner: S,
+    base_path: String,
     versions: ApiVersions<N>,
-    filter: F,
 }
 
-impl<const N: usize, S, F> Service<Request> for ApiVersionService<N, S, F>
+impl<const N: usize, S> Service<Request> for ApiVersionService<N, S>
 where
     S: Service<Request, Response = Response> + Clone + Send + 'static,
     S::Future: Send + 'static,
-    F: ApiVersionFilter,
 {
     type Response = S::Response;
     type Error = S::Error;
@@ -174,33 +154,29 @@ where
 
     fn call(&mut self, mut request: Request) -> Self::Future {
         let mut inner = self.inner.clone();
+        let base_path = self.base_path.clone();
         let versions = self.versions;
-        let filter = self.filter.clone();
 
         Box::pin(async move {
+            // Return without rewriting for paths not starting with base path.
+            let Some(path) = request.uri().path().strip_prefix(&base_path) else {
+                debug!(
+                    uri = %request.uri(),
+                    "not rewriting the path, because does not start with base path"
+                );
+                return inner.call(request).await;
+            };
+            let path = path.to_owned();
+
             // Return without rewriting for paths starting with a valid version prefix.
             let has_version_prefix = versions
                 .iter()
-                .any(|version| request.uri().path().starts_with(&format!("/v{version}/")));
+                .any(|version| path.starts_with(&format!("/v{version}/")));
             if has_version_prefix {
                 debug!(
                     uri = %request.uri(),
                     "not rewriting the path, because starts with valid version prefix"
                 );
-                return inner.call(request).await;
-            }
-
-            // Apply filter and possibly return without rewriting.
-            let should_rewrite = match filter.should_rewrite(request.uri()).await {
-                Ok(should_rewrite) => should_rewrite,
-
-                Err(error) => {
-                    error!(error = chained_sources(error), "cannot apply filter");
-                    return Ok(StatusCode::INTERNAL_SERVER_ERROR.into_response());
-                }
-            };
-            if !should_rewrite {
-                debug!(uri = %request.uri(), "not rewriting the path, because URI filtered");
                 return inner.call(request).await;
             }
 
@@ -222,12 +198,10 @@ where
             // Prepend the suitable prefix to the request URI.
             let mut parts = request.uri().to_owned().into_parts();
             let paq = parts.path_and_query.expect("uri has 'path and query'");
-            let mut paq_parts = paq.as_str().split('?');
-            let path = paq_parts.next().expect("uri has path");
+            let mut paq_parts = paq.as_str().split('?').skip(1);
             let paq = match paq_parts.next() {
-                Some(query) => format!("/v{version}{path}?{query}"),
-                None if path != "/" => format!("/v{version}{path}"),
-                None => format!("/v{version}"),
+                Some(query) => format!("{base_path}/v{version}{path}?{query}"),
+                None => format!("{base_path}/v{version}{path}"),
             };
             let paq = PathAndQuery::from_maybe_shared(paq).expect("new 'path and query' is valid");
             parts.path_and_query = Some(paq);
@@ -272,22 +246,6 @@ impl Header for XApiVersion {
         // We do not yet need to encode this header.
         unimplemented!("not yet needed");
     }
-}
-
-fn chained_sources<E>(error: E) -> String
-where
-    E: StdError,
-{
-    let mut sources = vec![];
-    sources.push(error.to_string());
-
-    let mut source = error.source();
-    while let Some(s) = source {
-        sources.push(s.to_string());
-        source = s.source();
-    }
-
-    sources.join(": ")
 }
 
 const fn is_monotonically_increasing<const N: usize>(versions: [u16; N]) -> bool {
