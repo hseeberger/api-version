@@ -10,10 +10,10 @@ use futures::{TryStreamExt, future::ok};
 use std::iter::Extend;
 use tower::{Layer, Service};
 
+const API_VERSIONS: ApiVersions<2> = ApiVersions::new([0, 1]);
+
 #[tokio::test]
 async fn test() {
-    const API_VERSIONS: ApiVersions<2> = ApiVersions::new([0, 1]);
-
     let app = Router::new()
         .route("/ready", get(ready))
         .route("/api/v0/test", get(ok_0))

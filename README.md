@@ -16,24 +16,14 @@ Axum middleware to rewrite a request such that a version prefix is added to the 
 ## Example
 
 ```rust
-struct ReadyFilter;
-
-impl ApiVersionFilter for ReadyFilter {
-    type Error = Infallible;
-
-    async fn should_rewrite(&self, uri: &Uri) -> Result<bool, Self::Error> {
-        Ok(uri.path() != "/")
-    }
-}
-
-let app = Router::new()
-    .route("/", get(ready))
-    .route("/v0/test", get(ok_0))
-    .route("/v1/test", get(ok_1));
-
 const API_VERSIONS: ApiVersions<2> = ApiVersions::new([0, 1]);
 
-let app = ApiVersionLayer::new(API_VERSIONS, ReadyFilter).layer(app);
+let app = Router::new()
+    .route("/ready", get(ready))
+    .route("/api/v0/test", get(ok_0))
+    .route("/api/v1/test", get(ok_1));
+
+let mut app = ApiVersionLayer::new("/api", API_VERSIONS).layer(app);
 ```
 
 ## License ##
