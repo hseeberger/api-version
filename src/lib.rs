@@ -44,7 +44,7 @@ static VERSION: LazyLock<Regex> =
 ///
 /// const API_VERSIONS: ApiVersions<2> = ApiVersions::new([0, 1]);
 ///
-/// let mut app = ApiVersionLayer::new(API_VERSIONS, FooFilter).layer(app);
+/// let mut app = ApiVersionLayer::new("/api", API_VERSIONS).layer(app);
 /// ```
 #[derive(Clone)]
 pub struct ApiVersionLayer<const N: usize> {
@@ -53,7 +53,11 @@ pub struct ApiVersionLayer<const N: usize> {
 }
 
 impl<const N: usize> ApiVersionLayer<N> {
-    /// Create a new API version layer.
+    /// Create a new API version layer with the given base path and api versions.
+    ///
+    /// # Panics
+    ///
+    /// Panics if base path does not start with "/" or is empty.
     pub fn new(base_path: impl AsRef<str>, versions: ApiVersions<N>) -> Self {
         let base_path = base_path.as_ref().trim_end_matches('/').to_string();
         assert!(base_path.starts_with('/'), "base path must start with '/'");
@@ -95,6 +99,8 @@ impl<const N: usize> ApiVersions<N> {
     /// # use api_version::ApiVersions;
     /// const VERSIONS: ApiVersions<2> = ApiVersions::new([1, 2]);;
     /// ```
+    ///
+    /// # Panics
     ///
     /// Empty versions or such that are not strictly monotonically increasing are invalid and fail
     /// to compile in const contexts or panic otherwise.
@@ -158,7 +164,7 @@ where
         let versions = self.versions;
 
         Box::pin(async move {
-            // Return without rewriting for paths not starting with base path.
+            // Strip base path prefix or return without rewriting.
             let Some(path) = request.uri().path().strip_prefix(&base_path) else {
                 debug!(
                     uri = %request.uri(),
@@ -168,7 +174,7 @@ where
             };
             let path = path.to_owned();
 
-            // Return without rewriting for paths starting with a valid version prefix.
+            // Return without rewriting if stripped path starts with valid version prefix.
             let has_version_prefix = versions
                 .iter()
                 .any(|version| path.starts_with(&format!("/v{version}/")));
@@ -180,7 +186,7 @@ where
                 return inner.call(request).await;
             }
 
-            // Determine API version.
+            // Determine version.
             let version = request.extract_parts::<TypedHeader<XApiVersion>>().await;
             let version = version
                 .as_ref()
@@ -195,7 +201,7 @@ where
             }
             debug!(?version, "using API version");
 
-            // Prepend the suitable prefix to the request URI.
+            // Insert version prefix into request URI.
             let mut parts = request.uri().to_owned().into_parts();
             let paq = parts.path_and_query.expect("uri has 'path and query'");
             let mut paq_parts = paq.as_str().split('?').skip(1);
