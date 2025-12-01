@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.4](https://github.com/hseeberger/api-version/compare/v0.3.3...v0.3.4) - 2025-12-01
+
+### Other
+
+- add CODEOWNERS ([#36](https://github.com/hseeberger/api-version/pull/36))
+- fix README ([#35](https://github.com/hseeberger/api-version/pull/35))
+- extend/improve Rustdoc ([#33](https://github.com/hseeberger/api-version/pull/33))
+
 ## [0.3.3](https://github.com/hseeberger/api-version/compare/v0.3.2...v0.3.3) - 2025-11-21
 
 ### Other
