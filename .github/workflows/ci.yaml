@@ -41,7 +41,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@0f44b27771c32bda9f458f75a1e241b09791b331
         with:
-          toolchain: nightly-2025-10-29
+          toolchain: nightly-2025-12-08
           components: rustfmt
 
       - name: Install just
