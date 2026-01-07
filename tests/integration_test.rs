@@ -17,7 +17,8 @@ async fn test() {
     let app = Router::new()
         .route("/ready", get(ready))
         .route("/api/v0/test", get(ok_0))
-        .route("/api/v1/test", get(ok_1));
+        .route("/api/v1/test", get(ok_1))
+        .route("/api-doc/openapi.json", get(api_doc));
 
     let mut app = ApiVersionLayer::new("/api", API_VERSIONS).layer(app);
 
@@ -84,6 +85,15 @@ async fn test() {
         .unwrap();
     let response = app.call(request).await.unwrap();
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
+
+    // Different base path with same prefix.
+    let request = Request::builder()
+        .uri("/api-doc/openapi.json")
+        .body(Body::empty())
+        .unwrap();
+    let response = app.call(request).await.unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(text(response).await, "api-doc");
 }
 
 async fn ready() -> impl IntoResponse {
@@ -96,6 +106,10 @@ async fn ok_0() -> impl IntoResponse {
 
 async fn ok_1() -> impl IntoResponse {
     "1"
+}
+
+async fn api_doc() -> impl IntoResponse {
+    "api-doc"
 }
 
 async fn text(response: Response) -> String {

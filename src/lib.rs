@@ -28,8 +28,8 @@ static VERSION: LazyLock<Regex> =
 /// Axum middleware to rewrite a request such that a version prefix is added to the path. This is
 /// based on a set of API versions and an optional `"x-api-version"` custom HTTP header: if no such
 /// header is present, the highest version is used. Yet this only applies to requests the URIs of
-/// which pass a filter; others are not rewritten.  Also, paths starting with a valid/existing
-/// version prefix, e.g. `"/v0"`, are not rewritten.
+/// which start with the given base path, e.g. "/api"; others are not rewritten.  Also, paths
+/// starting with a valid/existing version prefix, e.g. `"/api/v0"`, are not rewritten.
 ///
 /// # Examples
 ///
@@ -37,10 +37,9 @@ static VERSION: LazyLock<Regex> =
 ///
 /// ```ignore
 /// let app = Router::new()
-///     .route("/", get(ok_0))
-///     .route("/v0/test", get(ok_0))
-///     .route("/v1/test", get(ok_1))
-///     .route("/foo", get(ok_foo));
+///     .route("/ready", get(ok_0))
+///     .route("/api/v0/test", get(ok_0))
+///     .route("/api/v1/test", get(ok_1));
 ///
 /// const API_VERSIONS: ApiVersions<2> = ApiVersions::new([0, 1]);
 ///
@@ -165,14 +164,17 @@ where
 
         Box::pin(async move {
             // Strip base path prefix or return without rewriting.
-            let Some(path) = request.uri().path().strip_prefix(&base_path) else {
+            let path = if let Some(path) = request.uri().path().strip_prefix(&base_path)
+                && path.starts_with('/')
+            {
+                path.to_owned()
+            } else {
                 debug!(
                     uri = %request.uri(),
                     "not rewriting the path, because does not start with base path"
                 );
                 return inner.call(request).await;
             };
-            let path = path.to_owned();
 
             // Return without rewriting if stripped path starts with valid version prefix.
             let has_version_prefix = versions
