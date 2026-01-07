@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.4](https://github.com/hseeberger/api-version/compare/v0.3.3...v0.3.4) - 2026-01-07
+
+### Fixed
+
+- use full base path for rewrite decision ([#41](https://github.com/hseeberger/api-version/pull/41))
+
+### Other
+
+- *(deps)* bump Rust to 1.92.0 ([#40](https://github.com/hseeberger/api-version/pull/40))
+- *(deps)* bump various deps ([#38](https://github.com/hseeberger/api-version/pull/38))
+- add CODEOWNERS ([#36](https://github.com/hseeberger/api-version/pull/36))
+- fix README ([#35](https://github.com/hseeberger/api-version/pull/35))
+- extend/improve Rustdoc ([#33](https://github.com/hseeberger/api-version/pull/33))
+
 ## [0.3.3](https://github.com/hseeberger/api-version/compare/v0.3.2...v0.3.3) - 2025-11-21
 
 ### Other
