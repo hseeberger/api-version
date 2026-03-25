@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.5](https://github.com/hseeberger/api-version/compare/v0.3.4...v0.3.5) - 2026-03-25
+
+### Other
+
+- *(deps)* bump regex from 1.12.2 to 1.12.3 ([#51](https://github.com/hseeberger/api-version/pull/51))
+- *(deps)* bump actions/checkout from 5.0.1 to 6.0.2 ([#50](https://github.com/hseeberger/api-version/pull/50))
+- *(deps)* bump tracing from 0.1.43 to 0.1.44 ([#49](https://github.com/hseeberger/api-version/pull/49))
+- *(deps)* bump taiki-e/install-action from 2.62.53 to 2.69.9 ([#48](https://github.com/hseeberger/api-version/pull/48))
+- *(deps)* bump axum-extra from 0.12.2 to 0.12.5 ([#47](https://github.com/hseeberger/api-version/pull/47))
+- *(deps)* bump tower from 0.5.2 to 0.5.3 ([#46](https://github.com/hseeberger/api-version/pull/46))
+- *(deps)* bump axum from 0.8.7 to 0.8.8 ([#45](https://github.com/hseeberger/api-version/pull/45))
+- *(deps)* bump MarcoIeni/release-plz-action from 0.5.118 to 0.5.128 ([#44](https://github.com/hseeberger/api-version/pull/44))
+- *(deps)* bump dtolnay/rust-toolchain ([#43](https://github.com/hseeberger/api-version/pull/43))
+- *(deps)* bump Swatinem/rust-cache from 2.8.1 to 2.9.1 ([#42](https://github.com/hseeberger/api-version/pull/42))
+
 ## [0.3.4](https://github.com/hseeberger/api-version/compare/v0.3.3...v0.3.4) - 2026-01-07
 
 ### Fixed
