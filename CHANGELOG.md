@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.6](https://github.com/hseeberger/api-version/compare/v0.3.5...v0.3.6) - 2026-03-26
+
+### Other
+
+- *(deps)* bump anyhow from 1.0.100 to 1.0.102 ([#55](https://github.com/hseeberger/api-version/pull/55))
+- *(deps)* bump taiki-e/install-action from 2.69.9 to 2.69.10 ([#54](https://github.com/hseeberger/api-version/pull/54))
+
 ## [0.3.5](https://github.com/hseeberger/api-version/compare/v0.3.4...v0.3.5) - 2026-03-25
 
 ### Other
