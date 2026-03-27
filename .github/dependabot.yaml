@@ -4,15 +4,29 @@ updates:
   - package-ecosystem: "cargo"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     commit-message:
       prefix: build
       include: scope
+    cooldown:
+      default-days: 7
+    groups:
+      all:
+        patterns:
+          - "*"
+    ignore:
+      - dependency-name: "fake"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     commit-message:
       prefix: ci
       include: scope
+    cooldown:
+      default-days: 7
+    groups:
+      all:
+        patterns:
+          - "*"
