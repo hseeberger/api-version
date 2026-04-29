@@ -1,2 +1,4 @@
-.scratch
+.DS_Store
+.vscode
+.zed
 target
