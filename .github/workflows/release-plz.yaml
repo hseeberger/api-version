@@ -14,7 +14,7 @@ jobs:
     name: Setup Rust toolchain
     runs-on: ubuntu-latest
     outputs:
-      toolchain: ${{steps.set_toolchain.outputs.toolchain}}
+      toolchain: ${{ steps.set_toolchain.outputs.toolchain }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -40,7 +40,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
         with:
-          toolchain: ${{needs.toolchain.outputs.toolchain}}
+          toolchain: ${{ needs.toolchain.outputs.toolchain }}
 
       - name: Run release-plz
         uses: MarcoIeni/release-plz-action@1528104d2ca23787631a1c1f022abb64b34c1e11 # v0.5.128

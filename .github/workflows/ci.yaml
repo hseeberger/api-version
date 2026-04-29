@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{github.workflow}}-${{github.head_ref || github.run_id}}
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -18,8 +18,8 @@ jobs:
     name: Setup Rust toolchain
     runs-on: ubuntu-latest
     outputs:
-      stable: ${{steps.set_toolchain.outputs.stable}}
-      nightly: ${{steps.set_toolchain.outputs.nightly}}
+      stable: ${{ steps.set_toolchain.outputs.stable }}
+      nightly: ${{ steps.set_toolchain.outputs.nightly }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -45,7 +45,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
         with:
-          toolchain: ${{needs.toolchain.outputs.nightly}}
+          toolchain: ${{ needs.toolchain.outputs.nightly }}
           components: rustfmt
 
       - name: Install just
@@ -71,7 +71,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
         with:
-          toolchain: ${{needs.toolchain.outputs.stable}}
+          toolchain: ${{ needs.toolchain.outputs.stable }}
           components: clippy
 
       - name: Install just
@@ -84,7 +84,7 @@ jobs:
 
       - name: just lint
         run: |
-          rustup override set ${{needs.toolchain.outputs.stable}}
+          rustup override set ${{ needs.toolchain.outputs.stable }}
           just lint
 
   test:
@@ -98,7 +98,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
         with:
-          toolchain: ${{needs.toolchain.outputs.stable}}
+          toolchain: ${{ needs.toolchain.outputs.stable }}
 
       - name: Install just
         uses: taiki-e/install-action@58e862542551f667fa44c8a2a4a1d64ad477c96a # v2.75.17
@@ -110,7 +110,7 @@ jobs:
 
       - name: just test
         run: |
-          rustup override set ${{needs.toolchain.outputs.stable}}
+          rustup override set ${{ needs.toolchain.outputs.stable }}
           just test
 
   doc:
@@ -124,7 +124,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
         with:
-          toolchain: ${{needs.toolchain.outputs.stable}}
+          toolchain: ${{ needs.toolchain.outputs.stable }}
           components: rust-docs
 
       - name: Install just

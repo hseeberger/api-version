@@ -5,14 +5,14 @@ nightly := `rustc --version | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' | sed 's/^/n
 check:
 	cargo check --tests
 
+fix:
+	cargo fix --tests --allow-dirty --allow-staged
+
 fmt:
     cargo +{{nightly}} fmt
 
 fmt-check:
     cargo +{{nightly}} fmt --check
-
-fix:
-	cargo fix --tests --allow-dirty --allow-staged
 
 lint:
 	cargo clippy --tests --no-deps -- -D warnings
