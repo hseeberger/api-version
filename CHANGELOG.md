@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.6](https://github.com/hseeberger/api-version/compare/v0.3.5...v0.3.6) - 2026-05-29
+
+### Other
+
+- *(deps)* bump Rust to 1.96.0 ([#87](https://github.com/hseeberger/api-version/pull/87))
+- *(deps)* bump the all group across 1 directory with 2 updates ([#86](https://github.com/hseeberger/api-version/pull/86))
+- *(deps)* bump tokio from 1.52.2 to 1.52.3 in the all group ([#85](https://github.com/hseeberger/api-version/pull/85))
+- *(deps)* bump tokio from 1.52.1 to 1.52.2 in the all group ([#83](https://github.com/hseeberger/api-version/pull/83))
+- *(deps)* bump taiki-e/install-action in the all group ([#82](https://github.com/hseeberger/api-version/pull/82))
+- *(deps)* bump taiki-e/install-action in the all group ([#81](https://github.com/hseeberger/api-version/pull/81))
+- add cargo-audit ([#78](https://github.com/hseeberger/api-version/pull/78))
+- *(build)* apply common hseeberger project shape ([#76](https://github.com/hseeberger/api-version/pull/76))
+- *(deps)* bump taiki-e/install-action in the all group ([#75](https://github.com/hseeberger/api-version/pull/75))
+- *(ci)* auto-merge dependabot PRs ([#74](https://github.com/hseeberger/api-version/pull/74))
+- *(deps)* update Rust to 1.95.0 ([#72](https://github.com/hseeberger/api-version/pull/72))
+- remove dev container support ([#71](https://github.com/hseeberger/api-version/pull/71))
+- *(deps)* bump taiki-e/install-action in the all group ([#69](https://github.com/hseeberger/api-version/pull/69))
+- *(deps)* bump the all group with 3 updates ([#68](https://github.com/hseeberger/api-version/pull/68))
+- *(deps)* bump taiki-e/install-action in the all group ([#66](https://github.com/hseeberger/api-version/pull/66))
+- *(deps)* update Rust to 1.94.1 ([#65](https://github.com/hseeberger/api-version/pull/65))
+- *(deps)* bump taiki-e/install-action in the all group ([#64](https://github.com/hseeberger/api-version/pull/64))
+- *(deps)* bump Rust to 1.94.0
+- *(deps)* bump dtolnay/rust-toolchain in the all group ([#61](https://github.com/hseeberger/api-version/pull/61))
+- *(ci)* add cooldown to dependabot
+- *(deps)* bump taiki-e/install-action from 2.69.10 to 2.69.12 ([#60](https://github.com/hseeberger/api-version/pull/60))
+- *(deps)* bump futures from 0.3.31 to 0.3.32 ([#57](https://github.com/hseeberger/api-version/pull/57))
+- *(deps)* bump tokio from 1.48.0 to 1.50.0 ([#56](https://github.com/hseeberger/api-version/pull/56))
+- *(deps)* bump anyhow from 1.0.100 to 1.0.102 ([#55](https://github.com/hseeberger/api-version/pull/55))
+- *(deps)* bump taiki-e/install-action from 2.69.9 to 2.69.10 ([#54](https://github.com/hseeberger/api-version/pull/54))
+
+### Security
+
+- *(deps)* bump bytes to 1.11.1 to fix CVE-2026-25541 ([#79](https://github.com/hseeberger/api-version/pull/79))
+
 ## [0.3.5](https://github.com/hseeberger/api-version/compare/v0.3.4...v0.3.5) - 2026-03-25
 
 ### Other
