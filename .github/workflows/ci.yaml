@@ -22,7 +22,7 @@ jobs:
       nightly: ${{ steps.set_toolchain.outputs.nightly }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Output toolchain
         id: set_toolchain
@@ -40,7 +40,7 @@ jobs:
     needs: toolchain
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
@@ -49,7 +49,7 @@ jobs:
           components: rustfmt
 
       - name: Install just
-        uses: taiki-e/install-action@873c7452cadb7c034694a1282227095d93fbdf92 # v2.79.14
+        uses: taiki-e/install-action@59012be0884e296ca2da49b530610e72c49039ad # v2.81.6
         with:
           tool: just
 
@@ -66,7 +66,7 @@ jobs:
     needs: toolchain
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
@@ -75,7 +75,7 @@ jobs:
           components: clippy
 
       - name: Install just
-        uses: taiki-e/install-action@873c7452cadb7c034694a1282227095d93fbdf92 # v2.79.14
+        uses: taiki-e/install-action@59012be0884e296ca2da49b530610e72c49039ad # v2.81.6
         with:
           tool: just
 
@@ -93,7 +93,7 @@ jobs:
     needs: toolchain
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
@@ -101,7 +101,7 @@ jobs:
           toolchain: ${{ needs.toolchain.outputs.stable }}
 
       - name: Install just
-        uses: taiki-e/install-action@873c7452cadb7c034694a1282227095d93fbdf92 # v2.79.14
+        uses: taiki-e/install-action@59012be0884e296ca2da49b530610e72c49039ad # v2.81.6
         with:
           tool: just
 
@@ -119,7 +119,7 @@ jobs:
     needs: toolchain
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
@@ -128,7 +128,7 @@ jobs:
           components: rust-docs
 
       - name: Install just
-        uses: taiki-e/install-action@873c7452cadb7c034694a1282227095d93fbdf92 # v2.79.14
+        uses: taiki-e/install-action@59012be0884e296ca2da49b530610e72c49039ad # v2.81.6
         with:
           tool: just
 
