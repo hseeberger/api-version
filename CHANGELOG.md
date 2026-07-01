@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.7](https://github.com/hseeberger/api-version/compare/v0.3.6...v0.3.7) - 2026-07-01
+
+### Other
+
+- *(deps)* bump dtolnay/rust-toolchain
+- *(deps)* bump MarcoIeni/release-plz-action in the ci-patches group
+- align workflows
+- *(deps)* bump the all group across 1 directory with 4 updates ([#94](https://github.com/hseeberger/api-version/pull/94))
+- *(deps)* bump regex from 1.12.3 to 1.12.4 in the all group ([#92](https://github.com/hseeberger/api-version/pull/92))
+- *(deps)* bump the all group with 2 updates ([#91](https://github.com/hseeberger/api-version/pull/91))
+- *(deps)* bump taiki-e/install-action in the all group ([#90](https://github.com/hseeberger/api-version/pull/90))
+- bump rustfmt edition to 2024 ([#88](https://github.com/hseeberger/api-version/pull/88))
+
 ## [0.3.6](https://github.com/hseeberger/api-version/compare/v0.3.5...v0.3.6) - 2026-05-29
 
 ### Other
