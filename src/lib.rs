@@ -1,6 +1,8 @@
 //! Axum middleware to rewrite a request such that a version prefix, e.g. `"/v0"`, is added to the
 //! path.
 
+#![warn(missing_docs)]
+
 use axum::{
     RequestExt,
     extract::Request,
