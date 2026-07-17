@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.9](https://github.com/hseeberger/api-version/compare/v0.3.8...v0.3.9) - 2026-07-17
+
+### Other
+
+- *(deps)* bump regex from 1.12.4 to 1.13.0
+- *(deps)* bump dtolnay/rust-toolchain
+- *(deps)* bump taiki-e/install-action in the ci-patches group
+
 ## [0.3.8](https://github.com/hseeberger/api-version/compare/v0.3.7...v0.3.8) - 2026-07-16
 
 ### Other
