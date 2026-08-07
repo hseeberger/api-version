@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.9](https://github.com/hseeberger/api-version/compare/v0.3.8...v0.3.9) - 2026-08-07
+
+### Other
+
+- *(deps)* bump dtolnay/rust-toolchain
+- *(deps)* bump taiki-e/install-action in the ci-minor group
+- *(deps)* bump the cargo-patch group with 3 updates
+- *(deps)* bump tokio from 1.52.4 to 1.53.0 in the cargo-minor group
+- group dependabot updates by semver level, run weekly
+- *(deps)* bump the ci-patches group across 1 directory with 2 updates
+- *(deps)* bump tokio from 1.52.3 to 1.52.4 in the cargo-patches group
+- *(deps)* bump taiki-e/install-action
+- *(deps)* bump regex from 1.13.0 to 1.13.1 in the cargo-patches group
+- *(deps)* bump MarcoIeni/release-plz-action in the ci-patches group
+- *(deps)* bump taiki-e/install-action in the ci-patches group
+- turn on warnings for missing docs
+- *(deps)* bump regex from 1.12.4 to 1.13.0
+- *(deps)* bump dtolnay/rust-toolchain
+- *(deps)* bump taiki-e/install-action in the ci-patches group
+
 ## [0.3.8](https://github.com/hseeberger/api-version/compare/v0.3.7...v0.3.8) - 2026-07-16
 
 ### Other
