@@ -71,7 +71,7 @@ async fn test() {
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 
     // Invalid version.
-    for version in ["1", "vx", "v10000"] {
+    for version in ["1", "vx", "v10000", "v01"] {
         let request = Request::builder()
             .uri("/api/test")
             .header(&X_API_VERSION, version)
