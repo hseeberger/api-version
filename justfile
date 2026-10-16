@@ -22,7 +22,7 @@ lint-fix:
     cargo clippy --tests --no-deps --allow-dirty --allow-staged --fix
 
 test:
-    cargo test --tests
+    cargo test
 
 doc:
     cargo doc --no-deps
