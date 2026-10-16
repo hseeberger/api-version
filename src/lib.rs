@@ -13,7 +13,7 @@ use futures::future::BoxFuture;
 use regex::Regex;
 use std::{
     fmt::Debug,
-    mem,
+    iter, mem,
     ops::Deref,
     sync::LazyLock,
     task::{Context, Poll},
@@ -278,9 +278,10 @@ impl Header for XApiVersion {
             .ok_or_else(headers::Error::invalid)
     }
 
-    fn encode<E: Extend<HeaderValue>>(&self, _values: &mut E) {
-        // We do not yet need to encode this header.
-        unimplemented!("not yet needed");
+    fn encode<E: Extend<HeaderValue>>(&self, values: &mut E) {
+        let value = HeaderValue::try_from(format!("v{}", self.0))
+            .expect("version designator is a valid header value");
+        values.extend(iter::once(value));
     }
 }
 
