@@ -1,11 +1,12 @@
-use api_version::{ApiVersionLayer, ApiVersions, X_API_VERSION};
+use api_version::{ApiVersionLayer, ApiVersions, X_API_VERSION, XApiVersion};
 use axum::{
     Router,
     body::Body,
-    http::{Request, StatusCode},
+    http::{HeaderMap, HeaderValue, Request, StatusCode},
     response::{IntoResponse, Response},
     routing::get,
 };
+use axum_extra::headers::HeaderMapExt;
 use futures::{TryStreamExt, future::ok};
 use std::iter::Extend;
 use tower::{Layer, Service, ServiceExt, limit::ConcurrencyLimitLayer};
@@ -150,6 +151,14 @@ fn test_root_base_path() {
 #[should_panic(expected = "base path must start with '/'")]
 fn test_relative_base_path() {
     ApiVersionLayer::new("api", API_VERSIONS);
+}
+
+#[test]
+fn test_x_api_version() {
+    let mut headers = HeaderMap::new();
+    headers.insert(&X_API_VERSION, HeaderValue::from_static("v42"));
+    let version = headers.typed_get::<XApiVersion>().map(XApiVersion::version);
+    assert_eq!(version, Some(42));
 }
 
 async fn ready() -> impl IntoResponse {
