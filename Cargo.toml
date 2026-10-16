@@ -14,13 +14,11 @@ publish       = true
 axum       = { version = "0.8" }
 axum-extra = { version = "0.12", features = [ "typed-header" ] }
 futures    = { version = "0.3" }
-regex      = { version = "1.12" }
 tower      = { version = "0.5" }
 tracing    = { version = "0.1" }
 
 [dev-dependencies]
-anyhow         = { version = "1.0" }
-assert_matches = { version = "1.5" }
-futures        = { version = "0.3" }
-tokio          = { version = "1", features = [ "macros", "rt-multi-thread" ] }
-tower          = { version = "0.5", features = [ "limit", "util" ] }
+anyhow  = { version = "1.0" }
+futures = { version = "0.3" }
+tokio   = { version = "1", features = [ "macros", "rt-multi-thread" ] }
+tower   = { version = "0.5", features = [ "limit", "util" ] }

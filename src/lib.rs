@@ -10,11 +10,9 @@ use axum::{
 };
 use axum_extra::headers::{self, Header, HeaderMapExt};
 use futures::future::BoxFuture;
-use regex::Regex;
 use std::{
     iter, mem,
     ops::Deref,
-    sync::LazyLock,
     task::{Context, Poll},
 };
 use tower::{Layer, Service};
@@ -22,9 +20,6 @@ use tracing::debug;
 
 /// Header name for the [`XApiVersion`] custom HTTP header.
 pub static X_API_VERSION: HeaderName = HeaderName::from_static("x-api-version");
-
-static VERSION: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^v(0|[1-9]\d{0,3})$").expect("version regex is valid"));
 
 /// Axum middleware to rewrite a request such that a version prefix is added to the path. This is
 /// based on a set of API versions and an optional `"x-api-version"` custom HTTP header: if no such
@@ -192,10 +187,8 @@ where
             };
 
             // Return without rewriting if stripped path starts with valid version prefix.
-            let has_version_prefix = versions.iter().any(|version| {
-                path.strip_prefix(&format!("/v{version}"))
-                    .is_some_and(|path| path.is_empty() || path.starts_with('/'))
-            });
+            let has_version_prefix =
+                path_version(&path).is_some_and(|version| versions.contains(&version));
             if has_version_prefix {
                 debug!(
                     uri = %request.uri(),
@@ -272,8 +265,8 @@ impl Header for XApiVersion {
         values
             .next()
             .and_then(|v| v.to_str().ok())
-            .and_then(|s| VERSION.captures(s).and_then(|c| c.get(1)))
-            .and_then(|m| m.as_str().parse().ok())
+            .and_then(|s| s.strip_prefix('v'))
+            .and_then(parse_version)
             .map(XApiVersion)
             .ok_or_else(headers::Error::invalid)
     }
@@ -300,60 +293,64 @@ const fn is_strictly_increasing<const N: usize>(versions: [u16; N]) -> bool {
     true
 }
 
+fn path_version(path: &str) -> Option<u16> {
+    let digits = path.strip_prefix("/v")?;
+    let end = digits.find('/').unwrap_or(digits.len());
+    parse_version(&digits[..end])
+}
+
+fn parse_version(digits: &str) -> Option<u16> {
+    let digits = digits.as_bytes();
+    if digits.is_empty()
+        || digits.len() > 4
+        || !digits.iter().all(u8::is_ascii_digit)
+        || (digits[0] == b'0' && digits.len() > 1)
+    {
+        return None;
+    }
+
+    Some(
+        digits
+            .iter()
+            .fold(0, |version, digit| version * 10 + u16::from(digit - b'0')),
+    )
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::{VERSION, is_strictly_increasing};
-    use assert_matches::assert_matches;
+    use crate::{is_strictly_increasing, parse_version, path_version};
 
     #[test]
-    fn test_x_api_header() {
-        let version = VERSION
-            .captures("v0")
-            .and_then(|c| c.get(1))
-            .map(|m| m.as_str());
-        assert_matches!(version, Some("0"));
+    fn test_parse_version() {
+        assert_eq!(parse_version("0"), Some(0));
+        assert_eq!(parse_version("1"), Some(1));
+        assert_eq!(parse_version("99"), Some(99));
+        assert_eq!(parse_version("9999"), Some(9999));
 
-        let version = VERSION
-            .captures("v1")
-            .and_then(|c| c.get(1))
-            .map(|m| m.as_str());
-        assert_matches!(version, Some("1"));
+        assert_eq!(parse_version(""), None);
+        assert_eq!(parse_version("x"), None);
+        assert_eq!(parse_version("1x"), None);
+        assert_eq!(parse_version("-1"), None);
+        assert_eq!(parse_version("+1"), None);
+        assert_eq!(parse_version("00"), None);
+        assert_eq!(parse_version("01"), None);
+        assert_eq!(parse_version("10000"), None);
+        assert_eq!(parse_version("\u{663}"), None);
+    }
 
-        let version = VERSION
-            .captures("v99")
-            .and_then(|c| c.get(1))
-            .map(|m| m.as_str());
-        assert_matches!(version, Some("99"));
+    #[test]
+    fn test_path_version() {
+        assert_eq!(path_version("/v0"), Some(0));
+        assert_eq!(path_version("/v0/test"), Some(0));
+        assert_eq!(path_version("/v10/test"), Some(10));
 
-        let version = VERSION
-            .captures("v9999")
-            .and_then(|c| c.get(1))
-            .map(|m| m.as_str());
-        assert_matches!(version, Some("9999"));
-
-        let version = VERSION
-            .captures("v10000")
-            .and_then(|c| c.get(1))
-            .map(|m| m.as_str());
-        assert_matches!(version, None);
-
-        let version = VERSION
-            .captures("vx")
-            .and_then(|c| c.get(1))
-            .map(|m| m.as_str());
-        assert_matches!(version, None);
-
-        let version = VERSION
-            .captures("v00")
-            .and_then(|c| c.get(1))
-            .map(|m| m.as_str());
-        assert_matches!(version, None);
-
-        let version = VERSION
-            .captures("v01")
-            .and_then(|c| c.get(1))
-            .map(|m| m.as_str());
-        assert_matches!(version, None);
+        assert_eq!(path_version("/"), None);
+        assert_eq!(path_version("/test"), None);
+        assert_eq!(path_version("/v"), None);
+        assert_eq!(path_version("/v/test"), None);
+        assert_eq!(path_version("/v1x/test"), None);
+        assert_eq!(path_version("/v01/test"), None);
+        assert_eq!(path_version("/v10000/test"), None);
     }
 
     #[test]
