@@ -52,15 +52,17 @@ pub struct ApiVersionLayer<const N: usize> {
 }
 
 impl<const N: usize> ApiVersionLayer<N> {
-    /// Create a new API version layer with the given base path and api versions.
+    /// Create a new API version layer with the given base path and api versions. Trailing slashes
+    /// are removed from the base path.
     ///
     /// # Panics
     ///
-    /// Panics if base path does not start with "/" or is empty.
+    /// Panics if the base path without trailing slashes is empty, e.g. for "/", or does not start
+    /// with "/".
     pub fn new(base_path: impl AsRef<str>, versions: ApiVersions<N>) -> Self {
         let base_path = base_path.as_ref().trim_end_matches('/').to_string();
+        assert!(!base_path.is_empty(), "base path must not be empty");
         assert!(base_path.starts_with('/'), "base path must start with '/'");
-        assert!(!base_path.len() > 1, "base path must not be empty");
 
         Self {
             base_path,
