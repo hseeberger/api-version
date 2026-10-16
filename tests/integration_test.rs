@@ -161,6 +161,17 @@ fn test_x_api_version() {
     assert_eq!(version, Some(42));
 }
 
+#[test]
+fn test_x_api_version_encode() {
+    let mut headers = HeaderMap::new();
+    headers.insert(&X_API_VERSION, HeaderValue::from_static("v42"));
+    let version = headers.typed_get::<XApiVersion>().unwrap();
+
+    let mut headers = HeaderMap::new();
+    headers.typed_insert(version);
+    assert_eq!(headers.get(&X_API_VERSION).unwrap(), "v42");
+}
+
 async fn ready() -> impl IntoResponse {
     "ready"
 }
