@@ -134,6 +134,24 @@ async fn test_inner_service_readiness() {
     assert_eq!(text(response).await, "1");
 }
 
+#[test]
+#[should_panic(expected = "base path must not be empty")]
+fn test_empty_base_path() {
+    ApiVersionLayer::new("", API_VERSIONS);
+}
+
+#[test]
+#[should_panic(expected = "base path must not be empty")]
+fn test_root_base_path() {
+    ApiVersionLayer::new("/", API_VERSIONS);
+}
+
+#[test]
+#[should_panic(expected = "base path must start with '/'")]
+fn test_relative_base_path() {
+    ApiVersionLayer::new("api", API_VERSIONS);
+}
+
 async fn ready() -> impl IntoResponse {
     "ready"
 }
