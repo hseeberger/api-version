@@ -103,17 +103,26 @@ impl<const N: usize> ApiVersions<N> {
     ///
     /// # Panics
     ///
-    /// Empty versions or such that are not strictly monotonically increasing are invalid and fail
-    /// to compile in const contexts or panic otherwise.
+    /// Invalid versions fail to compile in const contexts or panic otherwise. Versions must not be
+    /// empty:
     ///
-    /// ```compile_fail
+    /// ```compile_fail,E0080
     /// # use api_version::ApiVersions;
-    /// /// API versions must not be empty!
     /// const VERSIONS: ApiVersions<0> = ApiVersions::new([]);
-    /// /// API versions must be strictly monotonically increasing!
-    /// const VERSIONS: ApiVersions<0> = ApiVersions::new([2, 1]);
-    /// /// API versions must be within 0u16..10_000!
-    /// const VERSIONS: ApiVersions<0> = ApiVersions::new([10_000]);
+    /// ```
+    ///
+    /// Versions must be strictly monotonically increasing:
+    ///
+    /// ```compile_fail,E0080
+    /// # use api_version::ApiVersions;
+    /// const VERSIONS: ApiVersions<2> = ApiVersions::new([2, 1]);
+    /// ```
+    ///
+    /// Versions must be less than `10_000`:
+    ///
+    /// ```compile_fail,E0080
+    /// # use api_version::ApiVersions;
+    /// const VERSIONS: ApiVersions<1> = ApiVersions::new([10_000]);
     /// ```
     pub const fn new(versions: [u16; N]) -> Self {
         assert!(!versions.is_empty(), "API versions must not be empty");
