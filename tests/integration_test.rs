@@ -8,7 +8,7 @@ use axum::{
 };
 use futures::{TryStreamExt, future::ok};
 use std::iter::Extend;
-use tower::{Layer, Service};
+use tower::{Layer, Service, ServiceExt, limit::ConcurrencyLimitLayer};
 
 const API_VERSIONS: ApiVersions<2> = ApiVersions::new([0, 1]);
 
@@ -94,6 +94,23 @@ async fn test() {
     let response = app.call(request).await.unwrap();
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(text(response).await, "api-doc");
+}
+
+/// The inner service made ready by `poll_ready` is the one handling the request.
+#[tokio::test]
+async fn test_inner_service_readiness() {
+    let app = Router::new().route("/api/v1/test", get(ok_1));
+    let app = ConcurrencyLimitLayer::new(1).layer(app);
+
+    let mut app = ApiVersionLayer::new("/api", API_VERSIONS).layer(app);
+
+    let request = Request::builder()
+        .uri("/api/test")
+        .body(Body::empty())
+        .unwrap();
+    let response = app.ready().await.unwrap().call(request).await.unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(text(response).await, "1");
 }
 
 async fn ready() -> impl IntoResponse {

@@ -17,6 +17,7 @@ use futures::future::BoxFuture;
 use regex::Regex;
 use std::{
     fmt::Debug,
+    mem,
     ops::Deref,
     sync::LazyLock,
     task::{Context, Poll},
@@ -160,7 +161,8 @@ where
     }
 
     fn call(&mut self, mut request: Request) -> Self::Future {
-        let mut inner = self.inner.clone();
+        let inner = self.inner.clone();
+        let mut inner = mem::replace(&mut self.inner, inner);
         let base_path = self.base_path.clone();
         let versions = self.versions;
 
