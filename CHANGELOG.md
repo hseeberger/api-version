@@ -7,6 +7,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0](https://github.com/hseeberger/api-version/compare/v0.3.8...v0.4.0) - 2026-10-16
+
+### Added
+
+- add XApiVersion::version accessor
+
+### Fixed
+
+- keep the full query when rewriting the path
+- implement XApiVersion::encode
+- [**breaking**] reject leading zeros in x-api-version header
+- reject empty base path with correct panic message
+- [**breaking**] reject invalid x-api-version header with 400
+- recognize version prefix without trailing path
+- call the inner service made ready by poll_ready
+
+### Other
+
+- avoid allocations in version prefix check and parsing
+- clean up style, docs and pedantic lints
+- use --all-targets in just recipes
+- split compile_fail doctests and run doctests
+- *(deps)* bump tokio
+- *(deps)* bump dtolnay/rust-toolchain
+- *(deps)* bump the ci-patch group with 2 updates
+- *(deps)* bump Rust to 1.99.0
+- *(deps)* bump dtolnay/rust-toolchain
+- *(deps)* bump taiki-e/install-action
+- *(deps)* bump dtolnay/rust-toolchain
+- *(deps)* bump the ci-patch group with 2 updates
+- *(deps)* bump dtolnay/rust-toolchain
+- *(deps)* bump the ci-patch group with 2 updates
+- *(deps)* bump the ci-patch group with 2 updates
+- *(deps)* bump the ci-patch group with 2 updates
+- *(deps)* bump Rust to 1.98.1
+- *(deps)* bump taiki-e/install-action in the ci-minor group
+- *(deps)* bump taiki-e/install-action in the ci-minor group
+- *(deps)* bump taiki-e/install-action
+- *(deps)* bump futures from 0.3.33 to 0.3.34 in the cargo-patch group
+- *(deps)* bump Rust to 1.98.0
+- *(deps)* bump the ci-patch group with 2 updates
+- *(deps)* bump dtolnay/rust-toolchain
+- *(deps)* bump taiki-e/install-action in the ci-minor group
+- *(deps)* bump the cargo-patch group with 3 updates
+- *(deps)* bump tokio from 1.52.4 to 1.53.0 in the cargo-minor group
+- group dependabot updates by semver level, run weekly
+- *(deps)* bump the ci-patches group across 1 directory with 2 updates
+- *(deps)* bump tokio from 1.52.3 to 1.52.4 in the cargo-patches group
+- *(deps)* bump taiki-e/install-action
+- *(deps)* bump regex from 1.13.0 to 1.13.1 in the cargo-patches group
+- *(deps)* bump MarcoIeni/release-plz-action in the ci-patches group
+- *(deps)* bump taiki-e/install-action in the ci-patches group
+- turn on warnings for missing docs
+- *(deps)* bump regex from 1.12.4 to 1.13.0
+- *(deps)* bump dtolnay/rust-toolchain
+- *(deps)* bump taiki-e/install-action in the ci-patches group
+
 ## [0.3.8](https://github.com/hseeberger/api-version/compare/v0.3.7...v0.3.8) - 2026-07-16
 
 ### Other
