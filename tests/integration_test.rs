@@ -2,6 +2,7 @@ use api_version::{ApiVersionLayer, ApiVersions, X_API_VERSION, XApiVersion};
 use axum::{
     Router,
     body::Body,
+    extract::RawQuery,
     http::{HeaderMap, HeaderValue, Request, StatusCode},
     response::{IntoResponse, Response},
     routing::get,
@@ -135,6 +136,25 @@ async fn test_inner_service_readiness() {
     assert_eq!(text(response).await, "1");
 }
 
+/// The query is passed on unchanged, even if it contains further question marks.
+#[tokio::test]
+async fn test_query() {
+    let app = Router::new().route("/api/v1/test", get(query));
+    let mut app = ApiVersionLayer::new("/api", API_VERSIONS).layer(app);
+
+    for (uri, expected) in [
+        ("/api/test", "none"),
+        ("/api/test?a=1", "a=1"),
+        ("/api/test?a=1?b=2", "a=1?b=2"),
+        ("/api/test?redirect=/x?y=1", "redirect=/x?y=1"),
+    ] {
+        let request = Request::builder().uri(uri).body(Body::empty()).unwrap();
+        let response = app.call(request).await.unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(text(response).await, expected);
+    }
+}
+
 #[test]
 #[should_panic(expected = "base path must not be empty")]
 fn test_empty_base_path() {
@@ -182,6 +202,10 @@ async fn ok_0() -> impl IntoResponse {
 
 async fn ok_1() -> impl IntoResponse {
     "1"
+}
+
+async fn query(RawQuery(query): RawQuery) -> impl IntoResponse {
+    query.unwrap_or_else(|| "none".to_string())
 }
 
 async fn api_doc() -> impl IntoResponse {
