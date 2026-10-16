@@ -4,15 +4,11 @@
 #![warn(missing_docs)]
 
 use axum::{
-    RequestExt,
     extract::Request,
     http::{HeaderName, HeaderValue, StatusCode, Uri, uri::PathAndQuery},
     response::{IntoResponse, Response},
 };
-use axum_extra::{
-    TypedHeader,
-    headers::{self, Header},
-};
+use axum_extra::headers::{self, Header, HeaderMapExt};
 use futures::future::BoxFuture;
 use regex::Regex;
 use std::{
@@ -30,7 +26,8 @@ static VERSION: LazyLock<Regex> =
 
 /// Axum middleware to rewrite a request such that a version prefix is added to the path. This is
 /// based on a set of API versions and an optional `"x-api-version"` custom HTTP header: if no such
-/// header is present, the highest version is used. Yet this only applies to requests the URIs of
+/// header is present, the highest version is used; if it is invalid, the request is rejected with
+/// `400 Bad Request`. Yet this only applies to requests the URIs of
 /// which start with the given base path, e.g. "/api"; others are not rewritten.  Also, paths
 /// starting with a valid/existing version prefix, e.g. `"/api/v0"`, are not rewritten.
 ///
@@ -194,12 +191,20 @@ where
             }
 
             // Determine version.
-            let version = request.extract_parts::<TypedHeader<XApiVersion>>().await;
-            let version = version
-                .as_ref()
-                .map(|TypedHeader(XApiVersion(v))| v)
-                .unwrap_or_else(|_| versions.last().expect("versions is not empty"));
-            if !versions.contains(version) {
+            let version = match request.headers().typed_try_get::<XApiVersion>() {
+                Ok(Some(XApiVersion(version))) => version,
+
+                Ok(None) => *versions.last().expect("versions is not empty"),
+
+                Err(_) => {
+                    let response = (
+                        StatusCode::BAD_REQUEST,
+                        format!("invalid header '{X_API_VERSION}'"),
+                    );
+                    return Ok(response.into_response());
+                }
+            };
+            if !versions.contains(&version) {
                 let response = (
                     StatusCode::NOT_FOUND,
                     format!("unknown version '{version}'"),

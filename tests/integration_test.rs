@@ -70,6 +70,17 @@ async fn test() {
     let response = app.call(request).await.unwrap();
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 
+    // Invalid version.
+    for version in ["1", "vx", "v10000"] {
+        let request = Request::builder()
+            .uri("/api/test")
+            .header(&X_API_VERSION, version)
+            .body(Body::empty())
+            .unwrap();
+        let response = app.call(request).await.unwrap();
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    }
+
     // Valid version prefix (existing version).
     let request = Request::builder()
         .uri("/api/v0/test")
