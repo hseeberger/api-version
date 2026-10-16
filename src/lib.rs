@@ -181,9 +181,10 @@ where
             };
 
             // Return without rewriting if stripped path starts with valid version prefix.
-            let has_version_prefix = versions
-                .iter()
-                .any(|version| path.starts_with(&format!("/v{version}/")));
+            let has_version_prefix = versions.iter().any(|version| {
+                path.strip_prefix(&format!("/v{version}"))
+                    .is_some_and(|path| path.is_empty() || path.starts_with('/'))
+            });
             if has_version_prefix {
                 debug!(
                     uri = %request.uri(),

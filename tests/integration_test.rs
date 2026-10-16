@@ -16,6 +16,7 @@ const API_VERSIONS: ApiVersions<2> = ApiVersions::new([0, 1]);
 async fn test() {
     let app = Router::new()
         .route("/ready", get(ready))
+        .route("/api/v0", get(ok_0))
         .route("/api/v0/test", get(ok_0))
         .route("/api/v1/test", get(ok_1))
         .route("/api-doc/openapi.json", get(api_doc));
@@ -72,6 +73,15 @@ async fn test() {
     // Valid version prefix (existing version).
     let request = Request::builder()
         .uri("/api/v0/test")
+        .body(Body::empty())
+        .unwrap();
+    let response = app.call(request).await.unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(text(response).await, "0");
+
+    // Valid version prefix without trailing path.
+    let request = Request::builder()
+        .uri("/api/v0")
         .body(Body::empty())
         .unwrap();
     let response = app.call(request).await.unwrap();
