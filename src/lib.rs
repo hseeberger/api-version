@@ -249,8 +249,15 @@ pub static X_API_VERSION: HeaderName = HeaderName::from_static("x-api-version");
 
 /// Custom HTTP header conveying the API version: `'v'` followed by a number from `0` to `9999`
 /// without leading zeros, e.g. `v0` or `v42`, but not `v01`.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct XApiVersion(u16);
+
+impl XApiVersion {
+    /// The API version number, e.g. `42` for `v42`.
+    pub fn version(self) -> u16 {
+        self.0
+    }
+}
 
 impl Header for XApiVersion {
     fn name() -> &'static HeaderName {
