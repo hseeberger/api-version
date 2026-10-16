@@ -221,14 +221,12 @@ where
             debug!(?version, "using API version");
 
             // Insert version prefix into request URI.
-            let mut parts = request.uri().to_owned().into_parts();
-            let paq = parts.path_and_query.expect("uri has 'path and query'");
-            let mut paq_parts = paq.as_str().split('?').skip(1);
-            let paq = match paq_parts.next() {
+            let paq = match request.uri().query() {
                 Some(query) => format!("{base_path}/v{version}{path}?{query}"),
                 None => format!("{base_path}/v{version}{path}"),
             };
             let paq = PathAndQuery::from_maybe_shared(paq).expect("new 'path and query' is valid");
+            let mut parts = request.uri().to_owned().into_parts();
             parts.path_and_query = Some(paq);
             let uri = Uri::from_parts(parts).expect("parts are valid");
 
