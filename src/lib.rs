@@ -22,7 +22,7 @@ use tower::{Layer, Service};
 use tracing::debug;
 
 static VERSION: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"^v(\d{1,4})$"#).expect("version regex is valid"));
+    LazyLock::new(|| Regex::new(r#"^v(0|[1-9]\d{0,3})$"#).expect("version regex is valid"));
 
 /// Axum middleware to rewrite a request such that a version prefix is added to the path. This is
 /// based on a set of API versions and an optional `"x-api-version"` custom HTTP header: if no such
@@ -247,8 +247,8 @@ where
 /// Header name for the [XApiVersion] custom HTTP header.
 pub static X_API_VERSION: HeaderName = HeaderName::from_static("x-api-version");
 
-/// Custom HTTP header conveying the API version, which is expected to be a version designator
-/// starting with `'v'` followed by a number within `0u16..10_000` without leading zero, e.g. `v0`.
+/// Custom HTTP header conveying the API version: `'v'` followed by a number from `0` to `9999`
+/// without leading zeros, e.g. `v0` or `v42`, but not `v01`.
 #[derive(Debug)]
 pub struct XApiVersion(u16);
 
@@ -332,6 +332,18 @@ mod tests {
 
         let version = VERSION
             .captures("vx")
+            .and_then(|c| c.get(1))
+            .map(|m| m.as_str());
+        assert_matches!(version, None);
+
+        let version = VERSION
+            .captures("v00")
+            .and_then(|c| c.get(1))
+            .map(|m| m.as_str());
+        assert_matches!(version, None);
+
+        let version = VERSION
+            .captures("v01")
             .and_then(|c| c.get(1))
             .map(|m| m.as_str());
         assert_matches!(version, None);
