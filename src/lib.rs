@@ -12,7 +12,6 @@ use axum_extra::headers::{self, Header, HeaderMapExt};
 use futures::future::BoxFuture;
 use regex::Regex;
 use std::{
-    fmt::Debug,
     iter, mem,
     ops::Deref,
     sync::LazyLock,
@@ -21,15 +20,18 @@ use std::{
 use tower::{Layer, Service};
 use tracing::debug;
 
+/// Header name for the [`XApiVersion`] custom HTTP header.
+pub static X_API_VERSION: HeaderName = HeaderName::from_static("x-api-version");
+
 static VERSION: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"^v(0|[1-9]\d{0,3})$"#).expect("version regex is valid"));
+    LazyLock::new(|| Regex::new(r"^v(0|[1-9]\d{0,3})$").expect("version regex is valid"));
 
 /// Axum middleware to rewrite a request such that a version prefix is added to the path. This is
 /// based on a set of API versions and an optional `"x-api-version"` custom HTTP header: if no such
 /// header is present, the highest version is used; if it is invalid, the request is rejected with
-/// `400 Bad Request`. Yet this only applies to requests the URIs of
-/// which start with the given base path, e.g. "/api"; others are not rewritten.  Also, paths
-/// starting with a valid/existing version prefix, e.g. `"/api/v0"`, are not rewritten.
+/// `400 Bad Request`. Yet this only applies to requests the URIs of which start with the given
+/// base path, e.g. "/api"; others are not rewritten. Also, paths starting with a valid/existing
+/// version prefix, e.g. `"/api/v0"`, are not rewritten.
 ///
 /// # Examples
 ///
@@ -90,15 +92,15 @@ pub struct ApiVersions<const N: usize>([u16; N]);
 impl<const N: usize> ApiVersions<N> {
     /// Create API versions. The given numbers must not be empty, must be strictly monotonically
     /// increasing and less than `10_000`; otherwise `new` fails to compile in const contexts or
-    /// panics otherwise.
+    /// panics at runtime.
     ///
     /// # Examples
     ///
-    /// Strictly monotonically versions `1` and `2` are valid:
+    /// Strictly monotonically increasing versions `1` and `2` are valid:
     ///
     /// ```
     /// # use api_version::ApiVersions;
-    /// const VERSIONS: ApiVersions<2> = ApiVersions::new([1, 2]);;
+    /// const VERSIONS: ApiVersions<2> = ApiVersions::new([1, 2]);
     /// ```
     ///
     /// # Panics
@@ -124,10 +126,11 @@ impl<const N: usize> ApiVersions<N> {
     /// # use api_version::ApiVersions;
     /// const VERSIONS: ApiVersions<1> = ApiVersions::new([10_000]);
     /// ```
+    #[must_use]
     pub const fn new(versions: [u16; N]) -> Self {
         assert!(!versions.is_empty(), "API versions must not be empty");
         assert!(
-            is_monotonically_increasing(versions),
+            is_strictly_increasing(versions),
             "API versions must be strictly monotonically increasing"
         );
         assert!(
@@ -147,7 +150,7 @@ impl<const N: usize> Deref for ApiVersions<N> {
     }
 }
 
-/// See [ApiVersionLayer].
+/// See [`ApiVersionLayer`].
 #[derive(Clone)]
 pub struct ApiVersionService<const N: usize, S> {
     inner: S,
@@ -183,7 +186,7 @@ where
             } else {
                 debug!(
                     uri = %request.uri(),
-                    "not rewriting the path, because does not start with base path"
+                    "not rewriting the path, because it does not start with base path"
                 );
                 return inner.call(request).await;
             };
@@ -196,7 +199,7 @@ where
             if has_version_prefix {
                 debug!(
                     uri = %request.uri(),
-                    "not rewriting the path, because starts with valid version prefix"
+                    "not rewriting the path, because it starts with valid version prefix"
                 );
                 return inner.call(request).await;
             }
@@ -205,7 +208,7 @@ where
             let version = match request.headers().typed_try_get::<XApiVersion>() {
                 Ok(Some(XApiVersion(version))) => version,
 
-                Ok(None) => *versions.last().expect("versions is not empty"),
+                Ok(None) => versions[N - 1],
 
                 Err(_) => {
                     let response = (
@@ -244,9 +247,6 @@ where
     }
 }
 
-/// Header name for the [XApiVersion] custom HTTP header.
-pub static X_API_VERSION: HeaderName = HeaderName::from_static("x-api-version");
-
 /// Custom HTTP header conveying the API version: `'v'` followed by a number from `0` to `9999`
 /// without leading zeros, e.g. `v0` or `v42`, but not `v01`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -254,6 +254,7 @@ pub struct XApiVersion(u16);
 
 impl XApiVersion {
     /// The API version number, e.g. `42` for `v42`.
+    #[must_use]
     pub fn version(self) -> u16 {
         self.0
     }
@@ -266,7 +267,6 @@ impl Header for XApiVersion {
 
     fn decode<'i, I>(values: &mut I) -> Result<Self, headers::Error>
     where
-        Self: Sized,
         I: Iterator<Item = &'i HeaderValue>,
     {
         values
@@ -278,18 +278,17 @@ impl Header for XApiVersion {
             .ok_or_else(headers::Error::invalid)
     }
 
-    fn encode<E: Extend<HeaderValue>>(&self, values: &mut E) {
+    fn encode<E>(&self, values: &mut E)
+    where
+        E: Extend<HeaderValue>,
+    {
         let value = HeaderValue::try_from(format!("v{}", self.0))
             .expect("version designator is a valid header value");
         values.extend(iter::once(value));
     }
 }
 
-const fn is_monotonically_increasing<const N: usize>(versions: [u16; N]) -> bool {
-    if N < 2 {
-        return true;
-    }
-
+const fn is_strictly_increasing<const N: usize>(versions: [u16; N]) -> bool {
     let mut n = 1;
     while n < N {
         if versions[n - 1] >= versions[n] {
@@ -303,7 +302,7 @@ const fn is_monotonically_increasing<const N: usize>(versions: [u16; N]) -> bool
 
 #[cfg(test)]
 mod tests {
-    use crate::{VERSION, is_monotonically_increasing};
+    use crate::{VERSION, is_strictly_increasing};
     use assert_matches::assert_matches;
 
     #[test]
@@ -358,12 +357,12 @@ mod tests {
     }
 
     #[test]
-    fn test_is_monotonically_increasing() {
-        assert!(is_monotonically_increasing([]));
-        assert!(is_monotonically_increasing([0]));
-        assert!(is_monotonically_increasing([0, 1]));
+    fn test_is_strictly_increasing() {
+        assert!(is_strictly_increasing([]));
+        assert!(is_strictly_increasing([0]));
+        assert!(is_strictly_increasing([0, 1]));
 
-        assert!(!is_monotonically_increasing([0, 0]));
-        assert!(!is_monotonically_increasing([1, 0]));
+        assert!(!is_strictly_increasing([0, 0]));
+        assert!(!is_strictly_increasing([1, 0]));
     }
 }
