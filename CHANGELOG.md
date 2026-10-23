@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1](https://github.com/hseeberger/api-version/compare/v0.4.0...v0.4.1) - 2026-10-23
+
+### Other
+
+- *(deps)* bump actions/create-github-app-token
+- *(deps)* bump the ci-patch group across 1 directory with 2 updates
+- *(deps)* bump tokio from 1.53.2 to 1.53.3 in the cargo-patch group
+- shrink dev build output via debug profile settings
+
 ## [0.4.0](https://github.com/hseeberger/api-version/compare/v0.3.8...v0.4.0) - 2026-10-16
 
 ### Added
