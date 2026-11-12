@@ -5,7 +5,6 @@ version       = "0.4.0"
 edition       = "2024"
 license       = "Apache-2.0"
 readme        = "README.md"
-homepage      = "https://github.com/hseeberger/api-version"
 repository    = "https://github.com/hseeberger/api-version"
 documentation = "https://docs.rs/api-version/latest/api_version/"
 publish       = true
