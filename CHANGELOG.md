@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1](https://github.com/hseeberger/api-version/compare/v0.4.0...v0.4.1) - 2026-11-12
+
+### Fixed
+
+- *(security)* update hyper to drop pin-utils (RUSTSEC-2026-0441)
+
+### Other
+
+- *(deps)* bump Rust to 1.100.0
+- *(deps)* bump taiki-e/install-action
+- *(deps)* bump MarcoIeni/release-plz-action
+- *(deps)* bump tokio
+- *(deps)* bump the ci-patch group with 3 updates
+- *(deps)* bump actions/create-github-app-token
+- *(deps)* bump the ci-patch group across 1 directory with 2 updates
+- *(deps)* bump tokio from 1.53.2 to 1.53.3 in the cargo-patch group
+- shrink dev build output via debug profile settings
+
 ## [0.4.0](https://github.com/hseeberger/api-version/compare/v0.3.8...v0.4.0) - 2026-10-16
 
 ### Added
