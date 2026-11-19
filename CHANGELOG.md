@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.4.1](https://github.com/hseeberger/api-version/compare/v0.4.0...v0.4.1) - 2026-11-19
+
+### Bug Fixes
+
+- *(security)* Update hyper to drop pin-utils (RUSTSEC-2026-0441) ([#197](https://github.com/hseeberger/api-version/pull/197))
+
+### Documentation
+
+- Regenerate changelogs with the unified config ([#213](https://github.com/hseeberger/api-version/pull/213))
+
+
 ## [0.4.0](https://github.com/hseeberger/api-version/compare/v0.3.8...v0.4.0) - 2026-10-16
 
 ### Features
